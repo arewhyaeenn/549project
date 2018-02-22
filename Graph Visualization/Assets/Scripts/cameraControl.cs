@@ -11,7 +11,7 @@ using UnityEngine;
 //			after basic objects are made, allow for zoom on current selection
 
 
-public class cameraControl : MonoBehaviour
+public class CameraControl : MonoBehaviour
 {
 
 	private float speed = 5f; // move speed
