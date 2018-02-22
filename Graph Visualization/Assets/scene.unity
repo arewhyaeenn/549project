@@ -156,7 +156,7 @@ LineRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9f0272b3a7635554497673a603c5ac5b, type: 2}
+  - {fileID: 2100000, guid: 4cb793645cba84147bf6f80cfb91be75, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -181,7 +181,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 2
-    widthMultiplier: 0.01
+    widthMultiplier: 0.005
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -273,7 +273,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.48026603, g: 0.47364298, b: 0.46323532, a: 0}
+  m_BackGroundColor: {r: 0.24264705, g: 0.24472858, b: 0.24799956, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -409,7 +409,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 2
-    widthMultiplier: 0.01
+    widthMultiplier: 0.005
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -554,7 +554,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 2
-    widthMultiplier: 0.01
+    widthMultiplier: 0.005
     widthCurve:
       serializedVersion: 2
       m_Curve:
