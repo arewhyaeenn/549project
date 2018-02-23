@@ -15,6 +15,18 @@ public class Vertex : MonoBehaviour
 	//	this will increase AddConnection complexity to O(log(n)) from O(1)
 	//	but it will lower RemoveConnection complexity from O(n) to O(log(n))
 
+	// params for selection and display
+	public bool isSelected = false;
+	private MeshRenderer renderer;
+	public Material unselectedMaterial;
+	public Material selectedMaterial;
+
+
+	void Start ()
+	{
+		renderer = GetComponent<MeshRenderer> ();
+	}
+
 
 	void Update ()
 	{
@@ -43,5 +55,28 @@ public class Vertex : MonoBehaviour
 	public void LogAdjacency()
 	{
 		Debug.Log (this.adjEdge.Count);
+	}
+
+
+	public void SetSelected(bool isSelected)
+	{
+		if (this.isSelected == !isSelected)
+		{
+			this.isSelected = isSelected;
+			if (isSelected)
+			{
+				renderer.material = selectedMaterial;
+			}
+			else
+			{
+				renderer.material = unselectedMaterial;
+			}
+		}
+	}
+
+
+	public void ToggleSelected ()
+	{
+		SetSelected (!isSelected);
 	}
 }

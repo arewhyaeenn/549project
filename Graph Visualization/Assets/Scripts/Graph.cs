@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Graph : MonoBehaviour 
 {
 	public GameObject vertex; // vertex prefab to copy when instantiating
@@ -11,7 +12,10 @@ public class Graph : MonoBehaviour
 
 	void Start ()
 	{
+		/*Vertex v1 = CreateVertex (Vector3.right);
+		Vertex v2 = CreateVertex (Vector3.up);
 
+		ConnectVertices (v1, v2);*/
 	}
 
 

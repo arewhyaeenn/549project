@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Edge : MonoBehaviour {
 
 	// Graph
@@ -19,10 +20,18 @@ public class Edge : MonoBehaviour {
 	private bool directed = false; // false --> simple, true --> directed
 	private float weight = 1f;
 
+	// params for selection and visual
+	public bool isSelected = false;
+	private LineRenderer renderer;
+	public Material unselectedMaterial;
+	public Material selectedMaterial;
+
 
 	void Start ()
 	{
-		
+		startPosition = transform.localPosition;
+		endPosition = transform.localPosition + transform.forward * transform.lossyScale.z;
+		renderer = GetComponent<LineRenderer> ();
 	}
 
 
@@ -131,7 +140,7 @@ public class Edge : MonoBehaviour {
 		Vector3 displacement = endPosition - startPosition;
 
 		// set length
-		transform.localScale = new Vector3(0, 0, displacement.magnitude);
+		transform.localScale = new Vector3(1, 1, displacement.magnitude);
 
 		// set orientation
 		if (displacement != Vector3.zero)
@@ -170,5 +179,28 @@ public class Edge : MonoBehaviour {
 
 		// set directed
 		this.directed = directed;
+	}
+
+
+	public void SetSelected(bool isSelected)
+	{
+		if (this.isSelected == !isSelected)
+		{
+			this.isSelected = isSelected;
+			if (isSelected)
+			{
+				renderer.material = selectedMaterial;
+			}
+			else
+			{
+				renderer.material = unselectedMaterial;
+			}
+		}
+	}
+
+
+	public void ToggleSelected ()
+	{
+		SetSelected (!isSelected);
 	}
 }
