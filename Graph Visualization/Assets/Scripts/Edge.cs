@@ -203,4 +203,27 @@ public class Edge : MonoBehaviour {
 	{
 		SetSelected (!isSelected);
 	}
+
+
+	public void PingSelect (Vertex vertex)
+	{
+		if (!isSelected)
+		{
+			if (hasStartVertex)
+			{
+				if (startVertex.isReceiving && startVertex != vertex)
+				{
+					master.user.AddEdge (this);
+				}
+			}
+
+			if (hasEndVertex)
+			{
+				if (endVertex.isReceiving && endVertex != vertex)
+				{
+					master.user.AddEdge (this);
+				}
+			}
+		}
+	}
 }

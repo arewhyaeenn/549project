@@ -21,6 +21,12 @@ public class Vertex : MonoBehaviour
 	public Material unselectedMaterial;
 	public Material selectedMaterial;
 
+	// size (use as weight for centroid calculation)
+	private int size = 1;
+
+	// vertex communication params
+	public bool isReceiving = false;
+
 
 	void Start ()
 	{
@@ -78,5 +84,28 @@ public class Vertex : MonoBehaviour
 	public void ToggleSelected ()
 	{
 		SetSelected (!isSelected);
+	}
+
+
+	public int GetSize ()
+	{
+		return size;
+	}
+
+
+	public void SetSize (int size)
+	{
+		this.size = size;
+	}
+
+	
+	public void SelectPing ()
+	{
+		int index = 0;
+		while (index < adjEdge.Count)
+		{
+			adjEdge [index].PingSelect (this);
+			index++;
+		}
 	}
 }

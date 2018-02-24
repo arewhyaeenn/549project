@@ -8,14 +8,12 @@ public class Graph : MonoBehaviour
 	public GameObject vertex; // vertex prefab to copy when instantiating
 	public GameObject edge; // edge prefab...
 	private List<Vertex> V = new List<Vertex>(); // List of Vertex MonoBehaviors
+	public CameraControl user;
 
 
 	void Start ()
 	{
-		/*Vertex v1 = CreateVertex (Vector3.right);
-		Vertex v2 = CreateVertex (Vector3.up);
-
-		ConnectVertices (v1, v2);*/
+		
 	}
 
 
