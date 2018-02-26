@@ -29,6 +29,7 @@ public class Edge : MonoBehaviour {
 
 	void Start ()
 	{
+		// set endpoints
 		startPosition = transform.localPosition;
 		endPosition = transform.localPosition + transform.forward * transform.lossyScale.z;
 		renderer = GetComponent<LineRenderer> ();
@@ -47,26 +48,37 @@ public class Edge : MonoBehaviour {
 	}
 
 
+	// set or change startVertex
 	public void SetStartVertex (Vertex startVertex)
 	{
+		// if startVertex has been assigned
 		if (hasStartVertex)
 		{
+			// if endVertex has been assigned
 			if (hasEndVertex)
 			{
+				// disconnect current startVertex from edge
 				this.startVertex.RemoveConnection (this);
+
+				// change start vertex assignment
 				this.startVertex = startVertex;
+
+				// connect new startVertex to edge
 				this.startVertex.AddConnection (this);
 			}
+			// there is no endVertex, so no connection
 			else
 			{
 				this.startVertex = startVertex;
 			}
 		}
+		// no startVertex has been assigned
 		else
 		{
 			this.startVertex = startVertex;
 			this.hasStartVertex = true;
 
+			// if there was an endVertex, both are now set, connect
 			if (hasEndVertex)
 			{
 				this.startVertex.AddConnection (this);
@@ -225,5 +237,19 @@ public class Edge : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+
+	public bool IsIsolated ()
+	{
+		return !(hasStartVertex || hasEndVertex);
+	}
+
+
+	// moves edge; does will not move edges which are connected, unless connected vertex is also selected
+	public void Move (Vector3 dir)
+	{
+		startPosition += dir;
+		endPosition += dir;
 	}
 }

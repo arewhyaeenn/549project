@@ -6,13 +6,17 @@ using UnityEngine;
 // 	initially in control scheme 2, press Tab to switch
 // 	control scheme 1 (WASD): wasdqe --> forward left back right up down respectively
 //			mouse --> turn
-// 	control scheme 2 (drag): right click and drag to turn
+// 	control scheme 2 (Drag): right click and drag to turn
 //			middle click and drag to move in plane perpendicular to forward
 //			scroll to move forward / backward
-//			TODO if objects are selected, scroll to scale distance from centroid
+//			TODO centroid function
+//			TODO if objects are selected, scroll to scale distance from centroid of selected
+
+// interface: (nonexistant)
 //  TODO allow user to change speed / sensitivity through interface
 //  TODO save user settings (JSON?) for easy import
-//	TODO delete control scheme 1, it was nice to use while testing parts of 2 though
+//	TODO undo/redo stack scheme?
+//	TODO export graph
 
 public class CameraControl : MonoBehaviour
 {
@@ -26,6 +30,7 @@ public class CameraControl : MonoBehaviour
 
 	// params for drag mode
 	private float moveSpeed = 5f;
+	private float dragSpeed = 5f;
 	private float scrollSpeed = 5f;
 	private bool isDragging = false; // moving selected objects
 	private bool isTurning = false; // turning camera
@@ -43,10 +48,10 @@ public class CameraControl : MonoBehaviour
 	}
 
 
-	void Update ()
+	void FixedUpdate ()
 	{
 
-		// switch camera mode
+		// switch camera mode if tab was pressed this frame
 		if (Input.GetKeyDown (KeyCode.Tab))
 		{
 			mode = !mode;
@@ -59,16 +64,13 @@ public class CameraControl : MonoBehaviour
 		}
 		else
 		{
-			drag ();
+			Drag ();
 		}
 	}
 
-
-	// TODO add axis for roll?
-	// one of the above, power or ease?
+	// TODO deprecate WASD?
 	void WASD ()
 	{
-
 		// get mouse movement
 		float mouseX = Input.GetAxis ("Mouse X");
 		float mouseY = -Input.GetAxis ("Mouse Y");
@@ -98,34 +100,36 @@ public class CameraControl : MonoBehaviour
 	}
 
 
-	void drag ()
+	void Drag ()
 	{
 		// let go of left click
-		if (Input.GetMouseButtonUp (0))
+		if (!Input.GetMouseButton (0))
 		{
 			isSelecting = false;
 		}
 
 		// let got of right click
-		if (Input.GetMouseButtonUp (1))
+		if (!Input.GetMouseButton (1))
 		{
 			isTurning = false;
+			isDragging = false;
 		}
 
 		// let got of middle click
-		if (Input.GetMouseButtonUp (2))
+		if (!Input.GetMouseButton (2))
 		{
 			isMoving = false;
 		}
 
-		if (!(isTurning || isMoving))
+		if (!(isTurning || isMoving || isDragging))
 		{
 			// left click
 			if (Input.GetMouseButtonDown (0))
 			{
-				// clicked on object
 				RaycastHit hit;
 				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+
+				// clicked on object
 				if (Physics.Raycast (ray, out hit, 1 << 8 | 1 << 9)) // layer 8 is Vertex, 9 is Edge
 				{
 					isSelecting = true;
@@ -192,8 +196,49 @@ public class CameraControl : MonoBehaviour
 			// right click
 			if (Input.GetMouseButtonDown (1))
 			{
-				Debug.Log ("Right click");
-				isTurning = true;
+				RaycastHit hit;
+				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+
+				// clicked on object
+				if (Physics.Raycast (ray, out hit, 1 << 8 | 1 << 9)) // layer 8 is Vertex, 9 is Edge
+				{
+					isDragging = true;
+
+					// clicked on vertex
+					if (hit.collider.gameObject.layer == 8)
+					{
+						Vertex vertex = hit.collider.GetComponent<Vertex> ();
+						if (!vertex.isSelected)
+						{
+							if (!Input.GetKey (KeyCode.LeftShift))
+							{
+								this.EmptySelected ();
+							}
+							vertex.ToggleSelected ();
+							V.Add (vertex);
+						}
+					}
+
+					// clickedon edge
+					else if (hit.collider.gameObject.layer == 9)
+					{
+						Edge edge = hit.collider.GetComponent<Edge> ();
+						if (!edge.isSelected)
+						{
+							if (!Input.GetKey(KeyCode.LeftShift))
+							{
+								this.EmptySelected ();
+							}
+							edge.ToggleSelected ();
+							E.Add (edge);
+						}
+					}
+				}
+				// clicked on nothing
+				else
+				{
+					isTurning = true;
+				}
 			}
 			if (isTurning)
 			{
@@ -204,22 +249,49 @@ public class CameraControl : MonoBehaviour
 				lookRot.x += mouseY * sensitivity * Time.deltaTime;
 
 				// clamp to prevent flipping
-				lookRot.x = Mathf.Clamp(lookRot.x, -camClampAngle, camClampAngle);
+				lookRot.x = Mathf.Clamp (lookRot.x, -camClampAngle, camClampAngle);
 
 				// rotate camera
-				transform.rotation = Quaternion.Euler(lookRot);
+				transform.rotation = Quaternion.Euler (lookRot);
+			}
+			else if (isDragging)
+			{
+				// get mouse movement
+				float mouseX = Input.GetAxis ("Mouse X");
+				float mouseY = Input.GetAxis ("Mouse Y");
+				float mouseZ = Input.GetAxis ("Mouse ScrollWheel");
 
-				Debug.Log ("Turning");
+				// get movement vector
+				Vector3 dir = ((mouseX * transform.right + mouseY * transform.up) * dragSpeed + mouseZ * transform.forward * scrollSpeed) * Time.deltaTime;
+
+				// move vertices
+				int index = 0;
+				while (index < V.Count)
+				{
+					V [index].Move (dir);
+					index++;
+				}
+
+				// move isolated edges
+				index = 0;
+				while (index < E.Count)
+				{
+					Edge edge = E [index];
+					if (edge.IsIsolated())
+					{
+						edge.Move (dir);
+					}
+					index++;
+				}
 			}
 		}
 
-		if (!(isSelecting || isTurning))
+		if (!(isSelecting || isTurning || isDragging))
 		{
 			// middle click or left control
 			if (Input.GetMouseButtonDown (2))
 			{
 				isMoving = true;
-				Debug.Log ("Middle Click");
 			}
 			if (isMoving)
 			{
@@ -231,15 +303,11 @@ public class CameraControl : MonoBehaviour
 				Vector3 dir = -(mouseX * transform.right + mouseY * transform.up) * moveSpeed * Time.deltaTime;
 				con.Move (dir);
 			}
-			else
-			{
-				if (V.Count == 0)
-				{
-					float mouseScroll = Input.GetAxis ("Mouse ScrollWheel");
-					Vector3 dir = mouseScroll * transform.forward * scrollSpeed * Time.deltaTime;
-					con.Move (dir);
-				}
-			}
+
+			// scroll wheel --> forward / backward movement
+			float mouseScroll = Input.GetAxis ("Mouse ScrollWheel");
+			Vector3 zoom = mouseScroll * transform.forward * scrollSpeed * Time.deltaTime;
+			con.Move (zoom);
 		}
 	}
 

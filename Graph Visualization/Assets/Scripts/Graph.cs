@@ -13,7 +13,9 @@ public class Graph : MonoBehaviour
 
 	void Start ()
 	{
-		
+		Vertex v1 = CreateVertex (transform.up);
+		Vertex v2 = CreateVertex (transform.right);
+		ConnectVertices (v1, v2);
 	}
 
 
@@ -26,6 +28,7 @@ public class Graph : MonoBehaviour
 	}
 
 
+	// create a vertex at specified position
 	Vertex CreateVertex (Vector3 position = default(Vector3))
 	{
 		// instantiate Vertex prefab, set parent to this.transform, get corresponding monobehavior
@@ -44,6 +47,7 @@ public class Graph : MonoBehaviour
 	}
 
 
+	// 
 	Edge CreateEdge ()
 	{
 		// instantiate Edge prefab, set parent to this.transform, get corresponding monobehavior

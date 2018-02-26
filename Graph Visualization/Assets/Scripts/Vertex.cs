@@ -108,4 +108,10 @@ public class Vertex : MonoBehaviour
 			index++;
 		}
 	}
+
+
+	public void Move (Vector3 dir)
+	{
+		transform.localPosition += dir;
+	}
 }
