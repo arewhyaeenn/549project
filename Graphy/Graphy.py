@@ -50,8 +50,8 @@ class Graphy:
                                                            Image.ANTIALIAS)
         self.selected_vertex_icon = ImageTk.PhotoImage(selected_vertex_icon)
 
-        self.tk.bind("<Configure>", self.resize)
-        self.can.bind("<Motion>", self.motion)
+        self.tk.bind("<Configure>", self.resize)  # on resize
+        self.can.bind("<Motion>", self.motion)  # on mouse movement over canvas
         self.can.bind("<Button-1>", self.click)  # left click to create
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
         self.can.bind("<Button-3>", self.rclick)  # right click to move
@@ -69,13 +69,18 @@ class Graphy:
 
     # when the window gets resized:
     def resize(self, event):
+
+        # get new values
+        new_width = self.tk.winfo_width()
+        new_height = self.tk.winfo_height()
+
         # get scale ratios
-        width_scale = float(event.width) / self.width
-        height_scale = float(event.height) / self.height
+        width_scale = float(new_width) / self.width
+        height_scale = float(new_height) / self.height
 
         # set new values
-        self.width = event.width
-        self.height = event.height
+        self.width = new_width
+        self.height = new_height
 
         # adjust canvas dimensions
         self.can.config(width=self.width, height=self.height)
@@ -181,6 +186,7 @@ class Graphy:
     @staticmethod
     def rgb_from_hex(hex_string):
         return tuple(ord(c) for c in hex_string.decode('hex'))
+
 
 if __name__ == '__main__':
     G = Graphy()
