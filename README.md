@@ -1,7 +1,7 @@
 # Graphy
 Visualisation of graph creation and search
 
-So far:
+Run Graphy.py to start.
 
 ## Controls:
 
