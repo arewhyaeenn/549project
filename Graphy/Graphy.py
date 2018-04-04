@@ -86,7 +86,10 @@ class Graphy:
         self.can.config(width=self.width, height=self.height)
 
         # scale objects in canvas
-        self.can.scale("all", 0, 0, width_scale, height_scale)
+        #self.can.scale("all", 0, 0, width_scale, height_scale)
+
+        # instead of scaling all items, only reposition the vertex button
+        self.vertex_spawn.resize(self.width,self.height)
 
     # mouse movement
     def motion(self, event):
