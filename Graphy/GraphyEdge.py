@@ -19,6 +19,8 @@ class GraphyEdge:
         self.parent.edges[self.id] = self
 
         self.selected = False
+        self.label = ''
+        self.weight = 0
 
     def update_endpoint_at_id(self, vertex_id, x, y):
 
@@ -78,6 +80,7 @@ class GraphyEdge:
                                                                 width=self.selected_width,
                                                                 fill=self.parent.hex_from_rgb((255, 50, 50)))
             self.can.tag_lower(self.parent.selected_icon_id)
+            self.parent.inspector.set_selected(self, 'edge')
 
     def set_unselected(self):
         print('edge unselected')
@@ -85,3 +88,10 @@ class GraphyEdge:
         self.can.delete(self.parent.selected_icon_id)
         self.parent.selected_icon_id = None
         self.parent.selected = None
+        self.parent.inspector.set_unselected()
+
+    def set_label(self, label):
+        self.label = label
+
+    def set_weight(self, weight):
+        self.weight = weight

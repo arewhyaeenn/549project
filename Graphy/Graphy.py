@@ -6,29 +6,48 @@ from GraphyMenuBar import GraphyMenuBar
 from GraphyVertexSpawnButton import GraphyVertexSpawnButton
 from GraphyVertex import GraphyVertex
 from GraphyEdge import GraphyEdge
+from GraphyInspectorFrame import GraphyInspectorFrame
 
 
 class Graphy:
 
     def __init__(self):
 
+        # window
         self.tk = Tk()
-        self.can = Canvas(self.tk)
-        # self.frame = Frame(self.tk)
-        self.can.pack()
 
-        self.width = 1000
-        self.height = 500
-        self.can.config(width=self.width,
-                        height=self.height,
+        # frame on left (canvas)
+        self.left_frame = Frame(self.tk)
+        self.left_frame.pack(side=LEFT)
+        self.can = Canvas(self.left_frame)
+
+        # frame on right (inspector, legend, ...)
+        self.right_frame_width = 30
+        self.right_frame = Frame(self.tk)
+        self.right_frame.pack(side=RIGHT, fill='both')
+        self.inspector = GraphyInspectorFrame(self)
+
+        self.canvas_width = 1000
+        self.canvas_height = 500
+        self.can.config(width=self.canvas_width,
+                        height=self.canvas_height,
                         background='white',
                         highlightthickness=0)
+        self.can.grid(column=0, row=0, sticky=(N, W, E, S))
+
+        # get padding for canvas resizing
+        self.can.update()
+        self.tk.update()
+        self.canvas_padding = self.tk.winfo_width() - self.can.winfo_width()
 
         self.menubar = GraphyMenuBar(self)
 
+        # graph utilities
         self.vertices = dict()
         self.edges = dict()
         self.vertex_spawn = GraphyVertexSpawnButton(self)
+
+        # selection and movement tracking
         self.held_vertex = None
         self.held_edge = None
         self.dragged_edge = None
@@ -36,6 +55,7 @@ class Graphy:
         self.selected = None
         self.selected_icon_id = None
 
+        # vertex images
         self.vertex_size = 20
         unexplored_vertex_image = Image.open("images/UnexploredVertex.png")
         unexplored_vertex_image = unexplored_vertex_image.resize((self.vertex_size,
@@ -43,13 +63,15 @@ class Graphy:
                                                                  Image.ANTIALIAS)
         self.unexplored_vertex_image = ImageTk.PhotoImage(unexplored_vertex_image)
 
-        self.selected_icon_size = 25
+        # selected vertex image (red outline)
+        self.selected_icon_size = int(1.25 * self.vertex_size)
         selected_vertex_icon = Image.open("images/SelectedVertexIcon.png")
         selected_vertex_icon = selected_vertex_icon.resize((self.selected_icon_size,
                                                             self.selected_icon_size),
                                                            Image.ANTIALIAS)
         self.selected_vertex_icon = ImageTk.PhotoImage(selected_vertex_icon)
 
+        # controls
         self.tk.bind("<Configure>", self.resize)  # on resize
         self.can.bind("<Motion>", self.motion)  # on mouse movement over canvas
         self.can.bind("<Button-1>", self.click)  # left click to create
@@ -58,6 +80,7 @@ class Graphy:
         self.mousex = 0
         self.mousey = 0
 
+        # quit
         self.isPlaying = True
         self.tk.protocol('WM_DELETE_WINDOW', self.quit)
 
@@ -71,25 +94,18 @@ class Graphy:
     def resize(self, event):
 
         # get new values
-        new_width = self.tk.winfo_width()
+        new_width = self.tk.winfo_width() - self.canvas_padding
         new_height = self.tk.winfo_height()
 
-        # get scale ratios
-        width_scale = float(new_width) / self.width
-        height_scale = float(new_height) / self.height
-
         # set new values
-        self.width = new_width
-        self.height = new_height
+        self.canvas_width = new_width
+        self.canvas_height = new_height
 
         # adjust canvas dimensions
-        self.can.config(width=self.width, height=self.height)
+        self.can.config(width=self.canvas_width, height=self.canvas_height)
 
-        # scale objects in canvas
-        #self.can.scale("all", 0, 0, width_scale, height_scale)
-
-        # instead of scaling all items, only reposition the vertex button
-        self.vertex_spawn.resize(self.width,self.height)
+        # reposition the vertex creation button
+        self.vertex_spawn.resize()
 
     # mouse movement
     def motion(self, event):

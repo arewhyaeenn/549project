@@ -12,6 +12,7 @@ class GraphyVertex:
         self.edges = set()
         self.neighbors = set()
         self.selected = False
+        self.label = ''
 
     def update_position(self, x, y):
         self.can.coords(self.id, x, y)
@@ -49,6 +50,7 @@ class GraphyVertex:
             self.parent.selected_icon_id = self.can.create_image(*self.can.coords(self.id),
                                                                  image=self.parent.selected_vertex_icon)
             self.can.tag_lower(self.parent.selected_icon_id)
+            self.parent.inspector.set_selected(self, 'vertex')
 
     def set_unselected(self):
         print('vertex unselected')
@@ -56,3 +58,7 @@ class GraphyVertex:
         self.can.delete(self.parent.selected_icon_id)
         self.parent.selected_icon_id = None
         self.parent.selected = None
+        self.parent.inspector.set_unselected()
+
+    def set_label(self, label):
+        self.label = label
