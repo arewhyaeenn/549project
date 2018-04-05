@@ -1,4 +1,4 @@
-# Edge, parent = Graphy
+# Edge, parent = Graphy (master = Graphy.can)
 
 
 class GraphyEdge:

@@ -1,4 +1,4 @@
-# Vertex Spawn Button, parent = Graphy
+# Vertex Spawn Button, parent = Graphy (master = graphy.can)
 from PIL import ImageTk, Image
 from tkinter import SW, Button
 

@@ -1,26 +1,26 @@
-# Inspector Frame, parent = Graphy
+# Inspector Frame, parent = Graphy (master = Graphy.right_frame)
 from tkinter import ttk, Label, StringVar, DoubleVar
 
 
-class GraphyInspectorFrame:
+class GraphyInspector:
 
     def __init__(self, parent):
 
         self.parent = parent
 
         self.width = self.parent.right_frame_width
-        self.padding = 4
+        self.padding = self.parent.right_frame_padding
 
         self.frame = ttk.Frame(master=self.parent.right_frame)
-        self.frame.pack(side='top', fill='y')
+        self.frame.pack(side='top', fill='y', )
 
-        # "Inspector" bar
+        # "Inspector" title bar
         self.title_frame = ttk.Frame(master=self.frame)
         self.title_frame.pack(side='top')
         self.title_label = Label(master=self.title_frame,
                                  text="Inspector",
                                  width=self.width,
-                                 bg='gray')
+                                 bg='lightgray')
         self.title_label.pack()
 
         # identifier for type of object selected
@@ -28,7 +28,7 @@ class GraphyInspectorFrame:
         self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
         self.type_label1 = Label(master=self.type_frame,
                                  width=int(self.width/2)-self.padding,
-                                 text='Type:')
+                                 text='Object:')
         self.type_label1.pack(side='left', padx=self.padding, pady=self.padding)
         self.type_label2 = Label(master=self.type_frame,
                                  width=int(self.width / 2) - self.padding,
@@ -49,6 +49,19 @@ class GraphyInspectorFrame:
                                      width=int(self.width/2)-self.padding,
                                      textvariable=self.label_var)
         self.label_entry.pack(side='right', padx=self.padding, pady=self.padding)
+
+        # status identifier (for vertices only)
+        self.status_frame = ttk.Frame(master=self.frame, relief='sunken')
+        self.status_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+        self.status_label1 = Label(master=self.status_frame,
+                                   width=int(self.width/2)-self.padding,
+                                   text='Status:')
+        self.status_label1.pack(side='left', padx=self.padding, pady=self.padding)
+        self.status_label2 = Label(master=self.status_frame,
+                                   width=int(self.width/2)-self.padding,
+                                   text='',
+                                   bg='white')
+        self.status_label2.pack(side='right', padx=self.padding, pady=self.padding)
 
         # weight identifier (for edges only)
         self.weight_frame = ttk.Frame(master=self.frame, relief='sunken')
@@ -77,14 +90,18 @@ class GraphyInspectorFrame:
         if selected_object_type == 'vertex':
 
             self.type_label2.config(text='Vertex')
+            self.status_label2.config(text=selected_object.status)
+
             self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
             self.label_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+            self.status_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
 
             self.label_var.set(selected_object.label)
 
         elif selected_object_type == 'edge':
 
             self.type_label2.config(text='Edge')
+
             self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
             self.label_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
             self.weight_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
@@ -99,6 +116,7 @@ class GraphyInspectorFrame:
     def set_unselected(self):
         self.type_frame.pack_forget()
         self.label_frame.pack_forget()
+        self.status_frame.pack_forget()
         self.weight_frame.pack_forget()
         self.selected = None
 

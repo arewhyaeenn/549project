@@ -6,7 +6,8 @@ from GraphyMenuBar import GraphyMenuBar
 from GraphyVertexSpawnButton import GraphyVertexSpawnButton
 from GraphyVertex import GraphyVertex
 from GraphyEdge import GraphyEdge
-from GraphyInspectorFrame import GraphyInspectorFrame
+from GraphyInspector import GraphyInspector
+from GraphyLegend import GraphyLegend
 
 
 class Graphy:
@@ -23,9 +24,10 @@ class Graphy:
 
         # frame on right (inspector, legend, ...)
         self.right_frame_width = 30
+        self.right_frame_padding = 4
         self.right_frame = Frame(self.tk)
         self.right_frame.pack(side=RIGHT, fill='both')
-        self.inspector = GraphyInspectorFrame(self)
+        self.inspector = GraphyInspector(self)
 
         self.canvas_width = 1000
         self.canvas_height = 500
@@ -40,6 +42,7 @@ class Graphy:
         self.tk.update()
         self.canvas_padding = self.tk.winfo_width() - self.can.winfo_width()
 
+        # top menu
         self.menubar = GraphyMenuBar(self)
 
         # graph utilities
@@ -57,19 +60,42 @@ class Graphy:
 
         # vertex images
         self.vertex_size = 20
+
+        # start vertex
+        start_vertex_image = Image.open("images/StartVertex.png")
+        start_vertex_image = start_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
+        self.start_vertex_image = ImageTk.PhotoImage(start_vertex_image)
+
+        # unexplored vertex
         unexplored_vertex_image = Image.open("images/UnexploredVertex.png")
-        unexplored_vertex_image = unexplored_vertex_image.resize((self.vertex_size,
-                                                                  self.vertex_size),
-                                                                 Image.ANTIALIAS)
+        unexplored_vertex_image = unexplored_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.unexplored_vertex_image = ImageTk.PhotoImage(unexplored_vertex_image)
+
+        # frontier vertex
+        frontier_vertex_image = Image.open("images/FrontierVertex.png")
+        frontier_vertex_image = frontier_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
+        self.frontier_vertex_image = ImageTk.PhotoImage(frontier_vertex_image)
+
+        # explored vertex
+        explored_vertex_image = Image.open("images/ExploredVertex.png")
+        explored_vertex_image = explored_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
+        self.explored_vertex_image = ImageTk.PhotoImage(explored_vertex_image)
+
+        # end vertex
+        end_vertex_image = Image.open("images/EndVertex.png")
+        end_vertex_image = end_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
+        self.end_vertex_image = ImageTk.PhotoImage(end_vertex_image)
 
         # selected vertex image (red outline)
         self.selected_icon_size = int(1.25 * self.vertex_size)
-        selected_vertex_icon = Image.open("images/SelectedVertexIcon.png")
-        selected_vertex_icon = selected_vertex_icon.resize((self.selected_icon_size,
-                                                            self.selected_icon_size),
-                                                           Image.ANTIALIAS)
-        self.selected_vertex_icon = ImageTk.PhotoImage(selected_vertex_icon)
+        selected_vertex_image = Image.open("images/SelectedVertexIcon.png")
+        selected_vertex_image = selected_vertex_image.resize((self.selected_icon_size,
+                                                             self.selected_icon_size),
+                                                             Image.ANTIALIAS)
+        self.selected_vertex_image = ImageTk.PhotoImage(selected_vertex_image)
+
+        # legend
+        self.legend = GraphyLegend(self)
 
         # controls
         self.tk.bind("<Configure>", self.resize)  # on resize
@@ -132,7 +158,7 @@ class Graphy:
 
         else:
 
-            # drop the vertex you're dragging
+            # drop the vertex being dragged
             if self.held_vertex:
                 self.held_vertex = None
 
