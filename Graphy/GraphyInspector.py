@@ -77,6 +77,7 @@ class GraphyInspector:
         self.weight_entry.pack(side='right', padx=self.padding, pady=self.padding)
 
         self.selected = None
+        self.selected_type = None
         self.set_unselected()
 
         self.label_var.trace('w', lambda *args: self.set_selected_label())
@@ -86,6 +87,7 @@ class GraphyInspector:
     def set_selected(self, selected_object, selected_object_type):
 
         self.selected = selected_object
+        self.selected_type = selected_object_type
 
         if selected_object_type == 'vertex':
 
@@ -119,6 +121,7 @@ class GraphyInspector:
         self.status_frame.pack_forget()
         self.weight_frame.pack_forget()
         self.selected = None
+        self.selected_type = None
 
     # set label of selected object
     def set_selected_label(self, *args):
@@ -127,3 +130,10 @@ class GraphyInspector:
     # set weight of selected object
     def set_selected_weight(self, *args):
         self.selected.set_weight(self.weight_var.get())
+
+    def update(self):
+        if self.selected:
+            selected = self.selected
+            type = self.selected_type
+            self.set_unselected()
+            self.set_selected(selected, type)

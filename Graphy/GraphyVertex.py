@@ -3,7 +3,7 @@
 
 class GraphyVertex:
 
-    def __init__(self, parent, image, mousex, mousey):
+    def __init__(self, parent, image, status, mousex, mousey):
 
         self.parent = parent
         self.can = self.parent.can
@@ -13,7 +13,7 @@ class GraphyVertex:
         self.neighbors = set()
         self.selected = False
         self.label = ''
-        self.status = 'Unexplored'
+        self.status = status
 
     def update_position(self, x, y):
         self.can.coords(self.id, x, y)
