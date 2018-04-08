@@ -1,5 +1,6 @@
 # Menu Bar, parent = Graphy
 from tkinter import Menu
+from GraphyRunSearchDialog import GraphyRunSearchDialog
 
 
 class GraphyMenuBar:
@@ -15,7 +16,7 @@ class GraphyMenuBar:
 
         # File Menu
         self.filemenu = Menu(self.menubar)
-        self.filemenu.add_command(label="Run Search", command=self.do_nothing)  # TODO
+        self.filemenu.add_command(label="Run Search", command=self.start_search)  # TODO
         self.filemenu.add_command(label="Save As...", command=self.do_nothing)  # TODO
         self.filemenu.add_command(label="Save", command=self.do_nothing)  # TODO
         self.filemenu.add_command(label="Open", command=self.do_nothing)  # TODO
@@ -37,3 +38,17 @@ class GraphyMenuBar:
 
     def do_nothing(self):
         return
+
+    # first choose start and end vertices
+    def start_search(self):
+        GraphyRunSearchDialog(self)
+        print("running search")
+        # top = self.top = Toplevel(parent)
+        #
+        # Label(top, text="Value").pack()
+        #
+        # self.e = Entry(top)
+        # self.e.pack(padx=5)
+        #
+        # b = Button(top, text="OK", command=self.ok)
+        # b.pack(pady=5)

@@ -103,6 +103,7 @@ class Graphy:
         self.can.bind("<Button-1>", self.click)  # left click to create
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
         self.can.bind("<Button-3>", self.rclick)  # right click to move
+        self.can.bind("<Return>", self.change_vertex)  # press enter to change status todo this didn't do anything
         self.mousex = 0
         self.mousey = 0
 
@@ -208,10 +209,30 @@ class Graphy:
                 self.dragged_edge_offsets[1] -= event.y
                 self.dragged_edge_offsets[3] -= event.y
 
-    def create_vertex(self, event):
+    # todo haven't been able to use this yet
+    def change_vertex(self, event):
+        self.held_vertex.can.config(self.held_vertex.id, self.start_vertex_image)
+
+    def create_unexplored_vertex(self, event):
         if not self.held_vertex:
             self.held_vertex = GraphyVertex(self,
                                             self.unexplored_vertex_image,
+                                            self.mousex,
+                                            self.mousey)
+            self.vertices[self.held_vertex.id] = self.held_vertex
+
+    def create_start_vertex(self, event):
+        if not self.held_vertex:
+            self.held_vertex = GraphyVertex(self,
+                                            self.start_vertex_image,
+                                            self.mousex,
+                                            self.mousey)
+            self.vertices[self.held_vertex.id] = self.held_vertex
+
+    def create_end_vertex(self, event):
+        if not self.held_vertex:
+            self.held_vertex = GraphyVertex(self,
+                                            self.end_vertex_image,
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex

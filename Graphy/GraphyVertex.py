@@ -63,3 +63,6 @@ class GraphyVertex:
 
     def set_label(self, label):
         self.label = label
+
+    def set_status(self, status):
+        self.status = status
