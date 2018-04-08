@@ -168,6 +168,8 @@ class Graphy:
         # attempt to attach half-created edge to second endpoint
         elif self.held_edge:
             item = self.can.find_closest(event.x, event.y)[0]
+            if item == self.selected_icon_id:
+                item = self.selected.id
             if item in self.vertices:
                 self.held_edge.attach_second_vertex(self.vertices[item])
             else:
@@ -178,6 +180,8 @@ class Graphy:
         # set start/end vertex if choosing search params
         elif self.is_setting_search_vertex:
             item = self.can.find_closest(event.x, event.y)[0]
+            if item == self.selected_icon_id:
+                item = self.selected.id
             if item in self.vertices:
                 self.set_search_vertex(self.vertices[item])
             self.is_setting_search_vertex = False
@@ -185,6 +189,8 @@ class Graphy:
 
         else:
             item = self.can.find_closest(event.x, event.y)[0]
+            if item == self.selected_icon_id:
+                item = self.selected.id
             if item in self.vertices:
                 self.create_edge(self.vertices[item], event)
                 print('edge started')
@@ -255,16 +261,17 @@ class Graphy:
             self.vertices[self.held_vertex.id] = self.held_vertex
 
     def set_search_vertex(self, vertex):
-        if self.is_setting_search_vertex == 'start':
+        if self.is_setting_search_vertex == 'Start':
             if self.start_vertex:
                 self.start_vertex.set_default()
-            vertex.set_status('start')
+            vertex.set_status('Start')
             self.start_vertex = vertex
-        elif self.is_setting_search_vertex == 'end':
+        elif self.is_setting_search_vertex == 'End':
             if self.end_vertex:
                 self.end_vertex.set_default()
-            vertex.set_status('end')
+            vertex.set_status('End')
             self.end_vertex = vertex
+        self.inspector.update()
 
     def create_edge(self, vertex, event):
         self.held_edge = GraphyEdge(self, vertex, event)
