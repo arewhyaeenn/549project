@@ -16,6 +16,7 @@ class Graphy:
 
         # window
         self.tk = Tk()
+        self.tk.title("Graphy")
 
         # frame on left (canvas)
         self.left_frame = Frame(self.tk)
@@ -46,8 +47,8 @@ class Graphy:
         self.menubar = GraphyMenuBar(self)
 
         # graph utilities
-        self.vertices = dict()
-        self.edges = dict()
+        self.vertices = dict() # vertex id --> GraphyVertex object
+        self.edges = dict() # edge id --> GraphyEdge object
         self.vertex_spawn = GraphyVertexSpawnButton(self)
 
         # selection and movement tracking
@@ -57,6 +58,9 @@ class Graphy:
         self.dragged_edge_offsets = None
         self.selected = None
         self.selected_icon_id = None
+        self.is_setting_search_vertex = False
+        self.start_vertex = None
+        self.end_vertex = None
 
         # vertex images
         self.vertex_size = 20
@@ -157,26 +161,33 @@ class Graphy:
         if self.dragged_edge:
             self.dragged_edge = None
 
-        else:
+        # drop the vertex being dragged
+        elif self.held_vertex:
+            self.held_vertex = None
 
-            # drop the vertex being dragged
-            if self.held_vertex:
-                self.held_vertex = None
-
-            # attempt to attach half-created edge to second endpoint
-            elif self.held_edge:
-                item = self.can.find_closest(event.x, event.y)[0]
-                if item in self.vertices:
-                    self.held_edge.attach_second_vertex(self.vertices[item])
-                else:
-                    print('unfinished edge deleted')
-                    self.held_edge.die()
-                self.held_edge = None
+        # attempt to attach half-created edge to second endpoint
+        elif self.held_edge:
+            item = self.can.find_closest(event.x, event.y)[0]
+            if item in self.vertices:
+                self.held_edge.attach_second_vertex(self.vertices[item])
             else:
-                item = self.can.find_closest(event.x, event.y)[0]
-                if item in self.vertices:
-                    self.create_edge(self.vertices[item], event)
-                    print('edge started')
+                print('unfinished edge deleted')
+                self.held_edge.die()
+            self.held_edge = None
+
+        # set start/end vertex if choosing search params
+        elif self.is_setting_search_vertex:
+            item = self.can.find_closest(event.x, event.y)[0]
+            if item in self.vertices:
+                self.set_search_vertex(self.vertices[item])
+            self.is_setting_search_vertex = False
+            self.menubar.search_window.get_focus()
+
+        else:
+            item = self.can.find_closest(event.x, event.y)[0]
+            if item in self.vertices:
+                self.create_edge(self.vertices[item], event)
+                print('edge started')
 
     def mclick(self, event):
         if not (self.held_vertex or self.held_edge or self.dragged_edge):
@@ -243,8 +254,23 @@ class Graphy:
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
 
+    def set_search_vertex(self, vertex):
+        if self.is_setting_search_vertex == 'start':
+            if self.start_vertex:
+                self.start_vertex.set_default()
+            vertex.set_status('start')
+            self.start_vertex = vertex
+        elif self.is_setting_search_vertex == 'end':
+            if self.end_vertex:
+                self.end_vertex.set_default()
+            vertex.set_status('end')
+            self.end_vertex = vertex
+
     def create_edge(self, vertex, event):
         self.held_edge = GraphyEdge(self, vertex, event)
+
+    def get_focus(self):
+        self.tk.focus_force()
 
     def quit(self):
         self.isPlaying = False

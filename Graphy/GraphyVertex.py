@@ -64,5 +64,20 @@ class GraphyVertex:
     def set_label(self, label):
         self.label = label
 
+    def set_default(self):
+        self.set_status('unexplored')
+
     def set_status(self, status):
         self.status = status
+        if status == 'unexplored':
+            self.can.itemconfig(self.id, image=self.parent.unexplored_vertex_image)
+        elif status == 'start':
+            self.can.itemconfig(self.id, image=self.parent.start_vertex_image)
+        elif status == 'frontier':
+            self.can.itemconfig(self.id, image=self.parent.frontier_vertex_image)
+        elif status == 'explored':
+            self.can.itemconfig(self.id, image=self.parent.explored_vertex_image)
+        elif status == 'end':
+            self.can.itemconfig(self.id, image=self.parent.end_vertex_image)
+        else:
+            print('Vertex set to unsupported status.')

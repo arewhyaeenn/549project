@@ -10,6 +10,8 @@ class GraphyMenuBar:
         self.parent = parent
         self.tk = parent.tk
 
+        self.search_window = None
+
         # Bar
         self.menubar = Menu(self.tk)
         self.tk.config(menu=self.menubar)
@@ -41,8 +43,12 @@ class GraphyMenuBar:
 
     # first choose start and end vertices
     def start_search(self):
-        GraphyRunSearchDialog(self)
-        print("running search")
+
+        if not self.search_window:
+            self.search_window = GraphyRunSearchDialog(self)
+            print("running search")
+
+        self.search_window.get_focus()
         # top = self.top = Toplevel(parent)
         #
         # Label(top, text="Value").pack()
