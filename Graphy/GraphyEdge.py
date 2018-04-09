@@ -20,7 +20,7 @@ class GraphyEdge:
 
         self.selected = False
         self.label = ''
-        self.weight = 0
+        self.weight = 1
 
     def update_endpoint_at_id(self, vertex_id, x, y):
 

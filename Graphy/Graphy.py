@@ -49,6 +49,7 @@ class Graphy:
         # graph utilities
         self.vertices = dict() # vertex id --> GraphyVertex object
         self.edges = dict() # edge id --> GraphyEdge object
+        self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
 
         # selection and movement tracking
@@ -274,7 +275,10 @@ class Graphy:
         self.inspector.update()
 
     def create_edge(self, vertex, event):
+        self.edge_count += 1
         self.held_edge = GraphyEdge(self, vertex, event)
+        self.held_edge.set_label(self.edge_count)
+
 
     def get_focus(self):
         self.tk.focus_force()
