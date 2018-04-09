@@ -48,6 +48,7 @@ class Graphy:
 
         # graph utilities
         self.vertices = dict() # vertex id --> GraphyVertex object
+        self.vertex_count = 0
         self.edges = dict() # edge id --> GraphyEdge object
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
@@ -242,6 +243,8 @@ class Graphy:
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
+            self.vertex_count += 1
+            self.held_vertex.set_label(self.vertex_count)
 
     def create_start_vertex(self, event):
         if not self.held_vertex:
@@ -251,6 +254,8 @@ class Graphy:
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
+            self.vertex_count += 1
+            self.held_vertex.set_label(self.vertex_count)
 
     def create_end_vertex(self, event):
         if not self.held_vertex:
@@ -260,6 +265,8 @@ class Graphy:
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
+            self.vertex_count += 1
+            self.held_vertex.set_label(self.vertex_count)
 
     def set_search_vertex(self, vertex):
         if self.is_setting_search_vertex == 'Start':
@@ -278,7 +285,6 @@ class Graphy:
         self.edge_count += 1
         self.held_edge = GraphyEdge(self, vertex, event)
         self.held_edge.set_label(self.edge_count)
-
 
     def get_focus(self):
         self.tk.focus_force()

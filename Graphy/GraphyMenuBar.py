@@ -1,6 +1,7 @@
 # Menu Bar, parent = Graphy
 from tkinter import Menu
 from GraphyRunSearchDialog import GraphyRunSearchDialog
+from GraphyWeightDialog import GraphyWeightDialog
 
 
 class GraphyMenuBar:
@@ -11,6 +12,8 @@ class GraphyMenuBar:
         self.tk = parent.tk
 
         self.search_window = None
+        self.weight_window = None
+        self.weight_scale = 1
 
         # Bar
         self.menubar = Menu(self.tk)
@@ -18,7 +21,8 @@ class GraphyMenuBar:
 
         # File Menu
         self.filemenu = Menu(self.menubar)
-        self.filemenu.add_command(label="Run Search", command=self.start_search)  # TODO
+        self.filemenu.add_command(label="Run Search", command=self.start_search)
+        self.filemenu.add_command(label="Set Weights", command=self.set_weights)
         self.filemenu.add_command(label="Save As...", command=self.do_nothing)  # TODO
         self.filemenu.add_command(label="Save", command=self.do_nothing)  # TODO
         self.filemenu.add_command(label="Open", command=self.do_nothing)  # TODO
@@ -49,12 +53,11 @@ class GraphyMenuBar:
             print("running search")
 
         self.search_window.get_focus()
-        # top = self.top = Toplevel(parent)
-        #
-        # Label(top, text="Value").pack()
-        #
-        # self.e = Entry(top)
-        # self.e.pack(padx=5)
-        #
-        # b = Button(top, text="OK", command=self.ok)
-        # b.pack(pady=5)
+
+    def set_weights(self):
+
+        if not self.weight_window:
+            self.weight_window = GraphyWeightDialog(self)
+            print("opening weight window")
+
+        self.weight_window.get_focus();
