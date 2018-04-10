@@ -63,7 +63,7 @@ class GraphyInspector:
         self.selected_type = None
         self.set_unselected()
 
-        self.label_var.trace('w', lambda *args: self.set_selected_label())
+        self.label_var.trace('w', self.set_selected_label)
         self.weight_var.trace('w', self.set_selected_weight)
 
     # object is a vertex or edge, type is 'vertex' or 'edge'...

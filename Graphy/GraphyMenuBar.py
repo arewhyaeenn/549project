@@ -60,4 +60,4 @@ class GraphyMenuBar:
             self.weight_window = GraphyWeightDialog(self)
             print("opening weight window")
 
-        self.weight_window.get_focus();
+        self.weight_window.get_focus()

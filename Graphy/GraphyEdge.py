@@ -1,5 +1,5 @@
 # Edge, parent = Graphy (master = Graphy.can)
-
+from math import sqrt
 
 class GraphyEdge:
 
@@ -95,3 +95,19 @@ class GraphyEdge:
 
     def set_weight(self, weight):
         self.weight = weight
+        if self.selected:
+            self.parent.inspector.update()
+
+    def get_weight_scale(self):
+        distance = self.get_euclidean_distance()
+        return self.weight / distance
+
+    def set_weight_from_scale(self, scale):
+        self.set_weight(self.get_euclidean_distance() * scale)
+
+    def get_euclidean_distance(self):
+        return self.euclidean_distance(*self.coords)
+
+    @staticmethod
+    def euclidean_distance(x1, y1, x2, y2):
+        return sqrt((x1-x2)**2 + (y1-y2)**2)

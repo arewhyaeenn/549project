@@ -26,7 +26,7 @@ class GraphyWeightDialog:
         self.auto_button.grid(row=0, column=0, columnspan=2, padx=self.button_padding, pady=self.button_padding, sticky=NSEW)
         self.auto_button.bind('<Button-1>', self.auto_set)
 
-        # manually set scale for edge weight vs euclidean pixel distance
+        # manually set scale
         self.scale_label = Label(master=self.frame, text="Scale:")
         self.scale_label.grid(row=1, column=0, sticky=NSEW)
         self.scale_var = DoubleVar()
@@ -35,6 +35,11 @@ class GraphyWeightDialog:
         self.scale_entry.grid(row=1, column=1, sticky=NSEW)
         self.scale_entry.bind('<Button-1>', self.select_scale_text)
         self.scale_entry.bind('<Return>', self.drop_widget_focus)
+
+        # get scale from existing edge
+        self.scale_from_edge_button = Button(master=self.frame, text="Get Scale From Edge", bg='pink', activebackground='lightpink')
+        self.scale_from_edge_button.grid(row=2, column=0, columnspan=2, padx=self.button_padding, pady=self.button_padding, sticky=NSEW)
+        self.scale_from_edge_button.bind('<Button-1>', self.select_edge_for_scale)
 
         # set column widths equal
         self.frame.columnconfigure(0, weight=1, uniform='u')
@@ -46,9 +51,8 @@ class GraphyWeightDialog:
         # bind scale variable
         self.scale_var.trace('w', self.set_parent_scale)
 
-    # todo set weights based on euclidean distance between vertices using scale multiplier
     def auto_set(self, event):
-        print('setting weights')
+        self.graphy.set_edge_weights(self.scale_var.get())
 
     def select_scale_text(self, event):
         if event:
@@ -58,9 +62,17 @@ class GraphyWeightDialog:
             self.scale_entry.select_range(0, 'end')
             self.scale_entry.icursor(0)
 
-    def set_parent_scale(self):
+    def set_scale(self, scale):
+        self.scale_var.set(scale)
+
+    def set_parent_scale(self, *args):
         print("setting parent scale")
         self.parent.weight_scale = self.scale_var.get()
+
+    def select_edge_for_scale(self, event):
+        print("selecting scale edge")
+        self.graphy.is_setting_scale_edge = True
+        self.graphy.get_focus()
 
     def get_focus(self):
         self.tk.focus_force()

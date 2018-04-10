@@ -47,9 +47,9 @@ class Graphy:
         self.menubar = GraphyMenuBar(self)
 
         # graph utilities
-        self.vertices = dict() # vertex id --> GraphyVertex object
+        self.vertices = dict()  # vertex.id --> GraphyVertex object
         self.vertex_count = 0
-        self.edges = dict() # edge id --> GraphyEdge object
+        self.edges = dict()  # edge.id --> GraphyEdge object
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
 
@@ -63,6 +63,8 @@ class Graphy:
         self.is_setting_search_vertex = False
         self.start_vertex = None
         self.end_vertex = None
+        self.is_setting_scale_edge = False
+        self.scale_edge = None
 
         # vertex images
         self.vertex_size = 20
@@ -189,6 +191,15 @@ class Graphy:
             self.is_setting_search_vertex = False
             self.menubar.search_window.get_focus()
 
+        elif self.is_setting_scale_edge:
+            item = self.can.find_closest(event.x, event.y)[0]
+            if item == self.selected_icon_id:
+                item = self.selected.id
+            if item in self.edges:
+                self.set_scale_edge(self.edges[item])
+            self.is_setting_scale_edge = False
+            self.menubar.weight_window.get_focus()
+
         else:
             item = self.can.find_closest(event.x, event.y)[0]
             if item == self.selected_icon_id:
@@ -285,6 +296,13 @@ class Graphy:
         self.edge_count += 1
         self.held_edge = GraphyEdge(self, vertex, event)
         self.held_edge.set_label(self.edge_count)
+
+    def set_scale_edge(self, edge):
+        self.menubar.weight_window.set_scale(edge.get_weight_scale())
+
+    def set_edge_weights(self, scale):
+        for edge in self.edges.values():
+            edge.set_weight_from_scale(scale)
 
     def get_focus(self):
         self.tk.focus_force()
