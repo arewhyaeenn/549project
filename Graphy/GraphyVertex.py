@@ -10,7 +10,7 @@ class GraphyVertex:
         self.image = image
         self.id = self.can.create_image(mousex, mousey, image=self.image)
         self.edges = set()
-        self.neighbors = set()
+        self.neighbors = dict() #  neighbor id --> corresponding edge
         self.selected = False
         self.label = ''
         self.status = status
@@ -28,9 +28,9 @@ class GraphyVertex:
                 edge.die()
                 print('multi-edge deleted')
             else:
-                self.add_neighbor(vertex_id)
+                self.add_neighbor(vertex_id, edge)
                 self.edges.add(edge)
-                self.parent.vertices[vertex_id].add_neighbor(self.id)
+                self.parent.vertices[vertex_id].add_neighbor(self.id, edge)
                 edge.update_trailing_end(*self.can.coords(self.id))
                 print('edge completed')
         else:
@@ -39,8 +39,8 @@ class GraphyVertex:
     def remove_edge(self, edge):
         self.edges.remove(edge)
 
-    def add_neighbor(self, vertex_id):
-        self.neighbors.add(vertex_id)
+    def add_neighbor(self, vertex_id, edge):
+        self.neighbors[vertex_id] = edge
 
     def set_selected(self):
         if self.selected:

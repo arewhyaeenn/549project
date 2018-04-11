@@ -8,6 +8,7 @@ from GraphyVertex import GraphyVertex
 from GraphyEdge import GraphyEdge
 from GraphyInspector import GraphyInspector
 from GraphyLegend import GraphyLegend
+from collections import deque
 
 
 class Graphy:
@@ -52,6 +53,11 @@ class Graphy:
         self.edges = dict()  # edge.id --> GraphyEdge object
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
+
+        # playback stacks and utils
+        self.forward_stack = None  # popleft() to get move forward
+        self.back_stack = None  # popright() to get get move backward
+        self.predecessors = dict()
 
         # selection and movement tracking
         self.held_vertex = None
@@ -303,6 +309,68 @@ class Graphy:
     def set_edge_weights(self, scale):
         for edge in self.edges.values():
             edge.set_weight_from_scale(scale)
+
+    def bfs_setup(self):
+        # todo check if start and end vertices exist in GraphySearchDialog before running search
+        self.predecessors = dict()
+        self.predecessors[self.start_vertex.id] = None
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        move = []
+        end_id = self.end_vertex.id
+        frontier = set()
+        for vertex_id in self.start_vertex.neighbors:
+            self.predecessors[vertex_id] = self.start_vertex.id
+            frontier.add(vertex_id)
+            if vertex_id != end_id:
+                move.append((vertex_id, 'Unexplored', 'Frontier'))
+        self.forward_stack.append(move)
+
+        frontier = deque(frontier)
+        while frontier and end_id not in self.predecessors:
+            move = []
+            frontier_id = frontier.popleft()
+            move.append((frontier_id, 'Frontier', 'Explored'))
+            neighborhood = self.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                if neighbor_id not in self.predecessors:
+                    self.predecessors[neighbor_id] = frontier_id
+                    frontier.append(neighbor_id)
+                    if not neighbor_id == end_id:
+                        move.append((neighbor_id, "Unexplored", "Frontier"))
+            self.forward_stack.append(move)
+
+        if end_id in self.predecessors:
+            move = []
+            previous_id = self.predecessors[end_id]
+            while previous_id:
+                edge_id = self.vertices[end_id].neighbors[previous_id].id
+                move.append((edge_id, "Default", "Highlighted"))
+                end_id = previous_id
+                previous_id = self.predecessors[previous_id]
+            self.forward_stack.append(move)
+
+    def bfs_forward(self, event):
+        if self.forward_stack:
+            move = self.forward_stack.popleft()
+            if move[0][0] in self.vertices:
+                for (vertex_id, state1, state2) in move:
+                    self.vertices[vertex_id].set_status(state2)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.edges[edge_id].set_status(state2)
+            self.back_stack.append(move)
+
+    def bfs_back(self, event):
+        if self.back_stack:
+            move = self.back_stack.pop()
+            if move[0][0] in self.vertices:
+                for (vertex_id, state1, state2) in move:
+                    self.vertices[vertex_id].set_status(state1)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.edges[edge_id].set_status(state1)
+            self.forward_stack.appendleft(move)
 
     def get_focus(self):
         self.tk.focus_force()

@@ -51,6 +51,14 @@ class GraphyRunSearchDialog:
         self.start_search_button.grid(row=2, column=0, columnspan=2, sticky=NSEW)
         self.start_search_button.bind('<Button-1>', self.start_search)
 
+        # rough draft forward/back buttons to test search methods; will error if search is not running!
+        self.forward_button = Button(self.frame, text='Next')
+        self.forward_button.grid(row=3, column=1, sticky=NSEW)
+        self.forward_button.bind('<Button-1>', self.graphy.bfs_forward)
+        self.back_button = Button(self.frame, text='Back')
+        self.back_button.grid(row=3, column=0, sticky=NSEW)
+        self.back_button.bind('<Button-1>', self.graphy.bfs_back)
+
         # rebind exit button
         self.tk.protocol('WM_DELETE_WINDOW', self.quit)
 
@@ -76,6 +84,8 @@ class GraphyRunSearchDialog:
 
     def start_search(self, event):
         print('"Start Search" button pressed')
+        if self.graphy.start_vertex and self.graphy.end_vertex_image:
+            self.graphy.bfs_setup()
 
     def quit(self):
         self.parent.search_window = None

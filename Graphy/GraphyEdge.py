@@ -98,6 +98,14 @@ class GraphyEdge:
         if self.selected:
             self.parent.inspector.update()
 
+    def set_status(self, state):
+        if state == "Default":
+            self.can.itemconfig(self.id, fill='black')
+        elif state == "Highlighted":
+            self.can.itemconfig(self.id, fill='orange')
+        else:
+            print('edge set to invalid state')
+
     def get_weight_scale(self):
         distance = self.get_euclidean_distance()
         return self.weight / distance
