@@ -66,11 +66,9 @@ class GraphyWeightDialog:
         self.scale_var.set(scale)
 
     def set_parent_scale(self, *args):
-        print("setting parent scale")
         self.parent.weight_scale = self.scale_var.get()
 
     def select_edge_for_scale(self, event):
-        print("selecting scale edge")
         self.graphy.is_setting_scale_edge = True
         self.graphy.get_focus()
 

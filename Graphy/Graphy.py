@@ -122,6 +122,7 @@ class Graphy:
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
         self.can.bind("<Button-3>", self.rclick)  # right click to move
         self.tk.bind("<Return>", self.change_vertex)  # press enter to change status
+        self.tk.bind("<Delete>", self.delete_selected)
         self.mousex = 0
         self.mousey = 0
 
@@ -187,7 +188,6 @@ class Graphy:
             if item in self.vertices:
                 self.held_edge.attach_second_vertex(self.vertices[item])
             else:
-                print('unfinished edge deleted')
                 self.held_edge.die()
             self.held_edge = None
 
@@ -216,7 +216,6 @@ class Graphy:
                 item = self.selected.id
             if item in self.vertices:
                 self.create_edge(self.vertices[item], event)
-                print('edge started')
 
     def mclick(self, event):
         if not (self.held_vertex or self.held_edge or self.dragged_edge):
@@ -291,6 +290,10 @@ class Graphy:
     def set_edge_weights(self, scale):
         for edge in self.edges.values():
             edge.set_weight_from_scale(scale)
+
+    def delete_selected(self, event):
+        if self.selected:
+            self.selected.delete()
 
     def set_search_type(self, search_type):
         self.set_search_to_start()

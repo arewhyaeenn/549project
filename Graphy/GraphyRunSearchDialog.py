@@ -79,7 +79,6 @@ class GraphyRunSearchDialog:
         self.tk.focus_force()
 
     def select_start_vertex(self, event):
-        print('selecting start vertex')
         self.graphy.is_setting_search_vertex = 'Start'
         self.graphy.get_focus()
 

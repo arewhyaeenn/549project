@@ -50,7 +50,6 @@ class GraphyMenuBar:
 
         if not self.search_window:
             self.search_window = GraphyRunSearchDialog(self)
-            print("running search")
 
         self.search_window.get_focus()
 
@@ -58,6 +57,5 @@ class GraphyMenuBar:
 
         if not self.weight_window:
             self.weight_window = GraphyWeightDialog(self)
-            print("opening weight window")
 
         self.weight_window.get_focus()

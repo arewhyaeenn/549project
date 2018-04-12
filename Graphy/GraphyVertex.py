@@ -28,13 +28,11 @@ class GraphyVertex:
         if vertex_id:
             if vertex_id in self.neighbors:
                 edge.die()
-                print('multi-edge deleted')
             else:
                 self.add_neighbor(vertex_id, edge)
                 self.edges.add(edge)
                 self.parent.vertices[vertex_id].add_neighbor(self.id, edge)
                 edge.update_trailing_end(*self.can.coords(self.id))
-                print('edge completed')
         else:
             self.edges.add(edge)
 
@@ -48,7 +46,6 @@ class GraphyVertex:
         if self.selected:
             self.set_unselected()
         else:
-            print('vertex selected')
             self.selected = True
             self.parent.selected_icon_id = self.can.create_image(*self.can.coords(self.id),
                                                                  image=self.parent.selected_vertex_image)
@@ -56,7 +53,6 @@ class GraphyVertex:
             self.parent.inspector.set_selected(self, 'vertex')
 
     def set_unselected(self):
-        print('vertex unselected')
         self.selected = False
         self.can.delete(self.parent.selected_icon_id)
         self.parent.selected_icon_id = None
@@ -87,7 +83,27 @@ class GraphyVertex:
     def display_weight(self, weight):
         if self.display_text_id:
             self.can.delete(self.display_text_id)
-        x, y = self.can.coords(self.id)
-        x += self.parent.vertex_size // 2
-        y += self.parent.vertex_size // 2
-        self.display_text_id = self.can.create_text(x, y, text=weight)
+            self.display_text_id = None
+        if weight:
+            x, y = self.can.coords(self.id)
+            x += self.parent.vertex_size // 2
+            y += self.parent.vertex_size // 2
+            self.display_text_id = self.can.create_text(x, y, text=weight)
+
+    def delete(self):
+        self.set_unselected()
+        neighborhood = list(self.neighbors)
+        i = 0
+        while i < len(neighborhood):
+            neighbor_id = neighborhood[i]
+            self.neighbors[neighbor_id].delete()
+            i += 1
+        self.can.delete(self.id)
+        self.display_weight(None)
+        del self.parent.vertices[self.id]
+        del self
+
+    def remove_neighbor(self, neighbor_id):
+        edge = self.neighbors[neighbor_id]
+        del self.neighbors[neighbor_id]
+        self.edges.remove(edge)

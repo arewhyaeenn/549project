@@ -44,7 +44,6 @@ class GraphyEdge:
 
     def attach_second_vertex(self, vertex):
         if vertex.id in self.vertices:
-            print('loop deleted')
             self.die()
         else:
             vertex.add_edge(self, next(iter(self.vertices)))
@@ -70,11 +69,19 @@ class GraphyEdge:
         del self.parent.edges[self.id]
         del self
 
+    def delete(self):
+        self.set_unselected()
+        vertex_1_id, vertex_2_id = tuple(self.vertices)
+        self.parent.vertices[vertex_1_id].remove_neighbor(vertex_2_id)
+        self.parent.vertices[vertex_2_id].remove_neighbor(vertex_1_id)
+        self.can.delete(self.id)
+        del self.parent.edges[self.id]
+        del self
+
     def set_selected(self):
         if self.selected:
             self.set_unselected()
         else:
-            print('edge selected')
             self.selected = True
             self.parent.selected_icon_id = self.can.create_line(*self.coords,
                                                                 width=self.selected_width,
@@ -83,7 +90,6 @@ class GraphyEdge:
             self.parent.inspector.set_selected(self, 'edge')
 
     def set_unselected(self):
-        print('edge unselected')
         self.selected = False
         self.can.delete(self.parent.selected_icon_id)
         self.parent.selected_icon_id = None
