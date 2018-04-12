@@ -267,28 +267,6 @@ class Graphy:
             self.vertex_count += 1
             self.held_vertex.set_label(self.vertex_count)
 
-    def create_start_vertex(self, event):
-        if not self.held_vertex:
-            self.held_vertex = GraphyVertex(self,
-                                            self.start_vertex_image,
-                                            'Start',
-                                            self.mousex,
-                                            self.mousey)
-            self.vertices[self.held_vertex.id] = self.held_vertex
-            self.vertex_count += 1
-            self.held_vertex.set_label(self.vertex_count)
-
-    def create_end_vertex(self, event):
-        if not self.held_vertex:
-            self.held_vertex = GraphyVertex(self,
-                                            self.end_vertex_image,
-                                            'Destination',
-                                            self.mousex,
-                                            self.mousey)
-            self.vertices[self.held_vertex.id] = self.held_vertex
-            self.vertex_count += 1
-            self.held_vertex.set_label(self.vertex_count)
-
     def set_search_vertex(self, vertex):
         if self.is_setting_search_vertex == 'Start':
             if self.start_vertex:

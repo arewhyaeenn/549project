@@ -30,13 +30,7 @@ class GraphyVertexSpawnButton:
                                                     parent.canvas_height - self.padding,
                                                     anchor=SW,
                                                     window=self.button)
-        # todo apparently you can't have more than one event associated with a button click, it'll do the last one
-        # self.button.bind("<Button-1>", self.switch_unexplored_vertex)
         self.button.bind("<Button-1>", self.parent.create_unexplored_vertex)
-        # self.button.bind("<Button-3>", self.switch_start_vertex)
-        #self.button.bind("<Button-3>", self.parent.create_start_vertex)
-        # self.button.bind("<Button-2>", self.switch_end_vertex)
-        #self.button.bind("<Button-2>", self.parent.create_end_vertex)
 
     def resize(self):
         self.can.coords(self.button_window,
