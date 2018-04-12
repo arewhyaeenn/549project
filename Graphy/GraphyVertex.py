@@ -30,7 +30,6 @@ class GraphyVertex:
         self.can.coords(self.id, x, y)
         self.pos_x = x - self.parent.offset_x
         self.pos_y = y - self.parent.offset_y
-        print("Position:",self.pos_x, self.pos_y)
         if self.selected:
             self.can.coords(self.parent.selected_icon_id, x, y)
         self.update_edge_positions(x, y)

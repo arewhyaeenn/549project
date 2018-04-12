@@ -73,6 +73,8 @@ class Graphy:
         self.is_setting_scale_edge = False
         self.scale_edge = None
         self.is_moving_canvas = False
+        self.max_vertex_pickup_distance = 20
+        self.max_edge_pickup_distance = 5
 
         # vertex images
         self.vertex_size = 20
@@ -255,17 +257,17 @@ class Graphy:
             if item in self.vertices:
                 x, y = self.can.coords(item)
                 distance = self.euclidean_distance(x, y, event.x, event.y)
-                if distance > self.vertex_size:
+                if distance > self.max_vertex_pickup_distance:
                     self.is_moving_canvas = True
                 else:
                     self.held_vertex = self.vertices[item]
             elif item in self.edges:
-                self.dragged_edge = self.edges[item]
                 ax, ay, bx, by = self.can.coords(item)
                 distance = self.distance_to_line(ax, ay, bx, by, event.x, event.y)
-                if distance > self.vertex_size:
+                if distance > self.max_edge_pickup_distance:
                     self.is_moving_canvas = True
                 else:
+                    self.dragged_edge = self.edges[item]
                     self.dragged_edge_offsets = self.can.coords(item)
                     self.dragged_edge_offsets[0] -= event.x
                     self.dragged_edge_offsets[2] -= event.x
@@ -275,10 +277,6 @@ class Graphy:
                 self.is_moving_canvas = True
 
     def rclick_release(self, event):
-        #self.tk.after(50, self.stop_moving_canvas)
-        self.is_moving_canvas = False
-
-    def stop_moving_canvas(self):
         self.is_moving_canvas = False
 
     def create_unexplored_vertex(self, event):
@@ -331,14 +329,18 @@ class Graphy:
     def distance_to_line(self, ax, ay, bx, by, mousex, mousey):
         if self.dot(bx-ax, by-ay, mousex-bx, mousey-by) >= 0:
             return self.euclidean_distance(bx, by, mousex, mousey)
-        elif self.dot(ax-bx, ay-by, mousex-ax, mousey-by) >= 0:
+        elif self.dot(ax-bx, ay-by, mousex-ax, mousey-ay) >= 0:
             return self.euclidean_distance(ax, ay, mousex, mousey)
         else:
-            return abs((ay-by)*mousey - (ax-bx)*mousex + ax*by - ay*bx) / self.euclidean_distance(ax, ay, bx, by)
+            return abs((ay-by)*mousex - (ax-bx)*mousey + ax*by - ay*bx) / self.euclidean_distance(ax, ay, bx, by)
 
     @staticmethod
     def euclidean_distance(x1, y1, x2, y2):
         return sqrt((x1-x2)**2 + (y1-y2)**2)
+
+    @staticmethod
+    def dot(x1, y1, x2, y2):
+        return x1*x2 + y1*y2
 
     # convert RGB tuple to corresponding hex string
     @staticmethod
