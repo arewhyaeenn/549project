@@ -49,6 +49,7 @@ class GraphySearch:
             self.search_step_forward = self.weighted_bfs_forward
             self.search_step_back = self.weighted_bfs_back
         elif search_type == "Weighted Depth-First":
+            # todo
             self.search_setup = self.simple_bfs_setup
             self.search_step_forward = self.simple_forward
             self.search_step_back = self.simple_back

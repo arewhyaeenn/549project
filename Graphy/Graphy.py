@@ -2,6 +2,7 @@
 
 from tkinter import *
 from PIL import Image, ImageTk
+from math import sqrt
 from GraphyMenuBar import GraphyMenuBar
 from GraphyVertexSpawnButton import GraphyVertexSpawnButton
 from GraphyVertex import GraphyVertex
@@ -30,6 +31,7 @@ class Graphy:
         self.right_frame.pack(side=RIGHT, fill='both')
         self.inspector = GraphyInspector(self)
 
+        # canvas setup
         self.canvas_width = 1000
         self.canvas_height = 500
         self.can.config(width=self.canvas_width,
@@ -37,6 +39,10 @@ class Graphy:
                         background='white',
                         highlightthickness=0)
         self.can.grid(column=0, row=0, sticky=(N, W, E, S))
+
+        # offset trackers for canvas movement
+        self.offset_x = 0
+        self.offset_y = 0
 
         # get padding for canvas resizing
         self.can.update()
@@ -66,6 +72,7 @@ class Graphy:
         self.is_setting_search_vertex = False
         self.is_setting_scale_edge = False
         self.scale_edge = None
+        self.is_moving_canvas = False
 
         # vertex images
         self.vertex_size = 20
@@ -112,6 +119,7 @@ class Graphy:
         self.can.bind("<Button-1>", self.click)  # left click to create
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
         self.can.bind("<Button-3>", self.rclick)  # right click to move
+        self.can.bind("<ButtonRelease-3>", self.rclick_release)  # let go of right click
         self.tk.bind("<Delete>", self.delete_selected)
         self.mousex = 0
         self.mousey = 0
@@ -156,8 +164,16 @@ class Graphy:
             x2 += event.x
             y2 += event.y
             self.dragged_edge.update_position(x1, y1, x2, y2)
+        elif self.is_moving_canvas:
+            self.move_canvas(event.x-self.mousex, event.y-self.mousey)
         self.mousex = event.x
         self.mousey = event.y
+
+    def move_canvas(self, deltax, deltay):
+        self.offset_x += deltax
+        self.offset_y += deltay
+        for vertex in self.vertices.values():
+            vertex.translate(deltax, deltay)
 
     # left click on canvas; probably rename "canvas_click" when there are other things to click
     def click(self, event):
@@ -176,7 +192,12 @@ class Graphy:
             if item == self.selected_icon_id:
                 item = self.selected.id
             if item in self.vertices:
-                self.held_edge.attach_second_vertex(self.vertices[item])
+                x, y = self.can.coords(item)
+                distance = self.euclidean_distance(x, y, event.x, event.y)
+                if distance <= self.vertex_size:
+                    self.held_edge.attach_second_vertex(self.vertices[item])
+                else:
+                    self.held_edge.die()
             else:
                 self.held_edge.die()
             self.held_edge = None
@@ -205,7 +226,10 @@ class Graphy:
             if item == self.selected_icon_id:
                 item = self.selected.id
             if item in self.vertices:
-                self.create_edge(self.vertices[item], event)
+                x, y = self.can.coords(item)
+                distance = self.euclidean_distance(x, y, event.x, event.y)
+                if distance <= self.vertex_size:
+                    self.create_edge(self.vertices[item], event)
 
     def mclick(self, event):
         if not (self.held_vertex or self.held_edge or self.dragged_edge):
@@ -229,14 +253,33 @@ class Graphy:
             if item == self.selected_icon_id:
                 item = self.selected.id
             if item in self.vertices:
-                self.held_vertex = self.vertices[item]
+                x, y = self.can.coords(item)
+                distance = self.euclidean_distance(x, y, event.x, event.y)
+                if distance > self.vertex_size:
+                    self.is_moving_canvas = True
+                else:
+                    self.held_vertex = self.vertices[item]
             elif item in self.edges:
                 self.dragged_edge = self.edges[item]
-                self.dragged_edge_offsets = self.can.coords(item)
-                self.dragged_edge_offsets[0] -= event.x
-                self.dragged_edge_offsets[2] -= event.x
-                self.dragged_edge_offsets[1] -= event.y
-                self.dragged_edge_offsets[3] -= event.y
+                ax, ay, bx, by = self.can.coords(item)
+                distance = self.distance_to_line(ax, ay, bx, by, event.x, event.y)
+                if distance > self.vertex_size:
+                    self.is_moving_canvas = True
+                else:
+                    self.dragged_edge_offsets = self.can.coords(item)
+                    self.dragged_edge_offsets[0] -= event.x
+                    self.dragged_edge_offsets[2] -= event.x
+                    self.dragged_edge_offsets[1] -= event.y
+                    self.dragged_edge_offsets[3] -= event.y
+            else:
+                self.is_moving_canvas = True
+
+    def rclick_release(self, event):
+        #self.tk.after(50, self.stop_moving_canvas)
+        self.is_moving_canvas = False
+
+    def stop_moving_canvas(self):
+        self.is_moving_canvas = False
 
     def create_unexplored_vertex(self, event):
         if not self.held_vertex:
@@ -283,6 +326,19 @@ class Graphy:
 
     def quit(self):
         self.isPlaying = False
+
+    # take endpoints of line segment (ax, ay) and (bx, by) and distance from mousex, mousey to the segment
+    def distance_to_line(self, ax, ay, bx, by, mousex, mousey):
+        if self.dot(bx-ax, by-ay, mousex-bx, mousey-by) >= 0:
+            return self.euclidean_distance(bx, by, mousex, mousey)
+        elif self.dot(ax-bx, ay-by, mousex-ax, mousey-by) >= 0:
+            return self.euclidean_distance(ax, ay, mousex, mousey)
+        else:
+            return abs((ay-by)*mousey - (ax-bx)*mousex + ax*by - ay*bx) / self.euclidean_distance(ax, ay, bx, by)
+
+    @staticmethod
+    def euclidean_distance(x1, y1, x2, y2):
+        return sqrt((x1-x2)**2 + (y1-y2)**2)
 
     # convert RGB tuple to corresponding hex string
     @staticmethod

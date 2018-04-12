@@ -5,22 +5,42 @@ class GraphyVertex:
 
     def __init__(self, parent, image, status, mousex, mousey):
 
+        # hierarchy
         self.parent = parent
         self.can = self.parent.can
+
+        # canvas setup
         self.image = image
         self.id = self.can.create_image(mousex, mousey, image=self.image)
+        self.set_status(status)
+
+        # graph utilities
         self.edges = set()
         self.neighbors = dict() #  neighbor id --> corresponding edge
         self.selected = False
         self.label = ''
-        self.status = status
+
+        # global position without canvas offset
+        self.pos_x = mousex - self.parent.offset_x
+        self.pos_y = mousey - self.parent.offset_y
 
         self.display_text_id = None
 
     def update_position(self, x, y):
         self.can.coords(self.id, x, y)
+        self.pos_x = x - self.parent.offset_x
+        self.pos_y = y - self.parent.offset_y
+        print("Position:",self.pos_x, self.pos_y)
         if self.selected:
             self.can.coords(self.parent.selected_icon_id, x, y)
+        self.update_edge_positions(x, y)
+
+    def translate(self, deltax, deltay):
+        self.can.move(self.id, deltax, deltay)
+        x, y = self.can.coords(self.id)
+        self.update_edge_positions(x, y)
+
+    def update_edge_positions(self, x, y):
         for edge in self.edges:
             edge.update_endpoint_at_id(self.id, x, y)
 
