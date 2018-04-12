@@ -8,7 +8,6 @@ from GraphyVertex import GraphyVertex
 from GraphyEdge import GraphyEdge
 from GraphyInspector import GraphyInspector
 from GraphyLegend import GraphyLegend
-from collections import deque
 
 
 class Graphy:
@@ -54,14 +53,8 @@ class Graphy:
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
 
-        # playback stacks and utils
-        self.forward_stack = None  # popleft() to get move forward
-        self.back_stack = None  # popright() to get get move backward
-        self.predecessors = dict()
-        self.traversal_weights = dict()
-        self.search_setup = None
-        self.search_step_forward = None
-        self.search_step_back = None
+        # GraphySearch
+        self.search = None
 
         # selection and movement tracking
         self.held_vertex = None
@@ -71,8 +64,6 @@ class Graphy:
         self.selected = None
         self.selected_icon_id = None
         self.is_setting_search_vertex = False
-        self.start_vertex = None
-        self.end_vertex = None
         self.is_setting_scale_edge = False
         self.scale_edge = None
 
@@ -121,7 +112,6 @@ class Graphy:
         self.can.bind("<Button-1>", self.click)  # left click to create
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
         self.can.bind("<Button-3>", self.rclick)  # right click to move
-        self.tk.bind("<Return>", self.change_vertex)  # press enter to change status
         self.tk.bind("<Delete>", self.delete_selected)
         self.mousex = 0
         self.mousey = 0
@@ -248,13 +238,6 @@ class Graphy:
                 self.dragged_edge_offsets[1] -= event.y
                 self.dragged_edge_offsets[3] -= event.y
 
-    # todo haven't been able to use this yet
-    def change_vertex(self, event):
-        if self.held_vertex:
-            self.held_vertex.can.itemconfig(self.held_vertex.id, image=self.start_vertex_image)
-            self.held_vertex.set_status('Start')
-            self.inspector.update()
-
     def create_unexplored_vertex(self, event):
         if not self.held_vertex:
             self.held_vertex = GraphyVertex(self,
@@ -268,15 +251,15 @@ class Graphy:
 
     def set_search_vertex(self, vertex):
         if self.is_setting_search_vertex == 'Start':
-            if self.start_vertex:
-                self.start_vertex.set_default()
+            if self.search.start_vertex:
+                self.search.start_vertex.set_default()
             vertex.set_status('Start')
-            self.start_vertex = vertex
+            self.search.start_vertex = vertex
         elif self.is_setting_search_vertex == 'End':
-            if self.end_vertex:
-                self.end_vertex.set_default()
+            if self.search.end_vertex:
+                self.search.end_vertex.set_default()
             vertex.set_status('End')
-            self.end_vertex = vertex
+            self.search.end_vertex = vertex
         self.inspector.update()
 
     def create_edge(self, vertex, event):
@@ -294,262 +277,6 @@ class Graphy:
     def delete_selected(self, event):
         if self.selected:
             self.selected.delete()
-
-    def set_search_type(self, search_type):
-        self.set_search_to_start()
-        self.forward_stack = deque()
-        self.back_stack = deque()
-        self.predecessors = dict()
-        self.traversal_weights = dict()
-        if search_type == "Simple Breadth-First":
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_bfs_forward
-            self.search_step_back = self.simple_bfs_back
-        elif search_type == "Simple Depth-First":
-            # todo
-            self.search_setup = self.simple_dfs_setup
-            self.search_step_forward = self.simple_bfs_forward  # simple bfs and dfs can use same stack controls
-            self.search_step_back = self.simple_bfs_back
-        elif search_type == "Weighted Breadth-First":
-            # todo
-            self.search_setup = self.weighted_bfs_setup
-            self.search_step_forward = self.weighted_bfs_forward
-            self.search_step_back = self.weighted_bfs_back
-        elif search_type == "Weighted Depth-First":
-            # todo
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_bfs_forward
-            self.search_step_back = self.simple_bfs_back
-        elif search_type == "A*":
-            # todo
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_bfs_forward
-            self.search_step_back = self.simple_bfs_back
-        else:
-            print('invalid search type selected')
-
-    def set_search_to_start(self):
-        while self.back_stack:
-            self.search_step_back()
-
-    def set_search_to_end(self):
-        while self.forward_stack:
-            self.search_step_forward()
-
-    def simple_bfs_setup(self):
-        print('setting up simple BFS')
-        self.predecessors = dict()
-        self.predecessors[self.start_vertex.id] = None
-        self.forward_stack = deque()
-        self.back_stack = deque()
-        move = []
-        end_id = self.end_vertex.id
-        frontier = set()
-        for vertex_id in self.start_vertex.neighbors:
-            self.predecessors[vertex_id] = self.start_vertex.id
-            frontier.add(vertex_id)
-            if vertex_id != end_id:
-                move.append((vertex_id, 'Unexplored', 'Frontier'))
-        self.forward_stack.append(move)
-
-        frontier = deque(frontier)
-        while frontier and end_id not in self.predecessors:
-            move = []
-            frontier_id = frontier.popleft()
-            move.append((frontier_id, 'Frontier', 'Explored'))
-            neighborhood = self.vertices[frontier_id].neighbors
-            for neighbor_id in neighborhood:
-                if neighbor_id not in self.predecessors:
-                    self.predecessors[neighbor_id] = frontier_id
-                    frontier.append(neighbor_id)
-                    if not neighbor_id == end_id:
-                        move.append((neighbor_id, "Unexplored", "Frontier"))
-            self.forward_stack.append(move)
-
-        if end_id in self.predecessors:
-            move = []
-            previous_id = self.predecessors[end_id]
-            while previous_id:
-                edge_id = self.vertices[end_id].neighbors[previous_id].id
-                move.append((edge_id, "Default", "Highlighted"))
-                end_id = previous_id
-                previous_id = self.predecessors[previous_id]
-            self.forward_stack.append(move)
-
-    def simple_bfs_forward(self):
-        if self.forward_stack:
-            move = self.forward_stack.popleft()
-            if move[0][0] in self.vertices:
-                for (vertex_id, state1, state2) in move:
-                    self.vertices[vertex_id].set_status(state2)
-            else:
-                for (edge_id, state1, state2) in move:
-                    self.edges[edge_id].set_status(state2)
-            self.back_stack.append(move)
-
-    def simple_bfs_back(self):
-        if self.back_stack:
-            move = self.back_stack.pop()
-            if move[0][0] in self.vertices:
-                for (vertex_id, state1, state2) in move:
-                    self.vertices[vertex_id].set_status(state1)
-            else:
-                for (edge_id, state1, state2) in move:
-                    self.edges[edge_id].set_status(state1)
-            self.forward_stack.appendleft(move)
-
-    def simple_dfs_setup(self):
-        print('setting up simple DFS')
-        self.predecessors = dict()
-        self.predecessors[self.start_vertex.id] = None
-        self.forward_stack = deque()
-        self.back_stack = deque()
-        move = []
-        end_id = self.end_vertex.id
-        frontier = set()
-        for vertex_id in self.start_vertex.neighbors:
-            self.predecessors[vertex_id] = self.start_vertex.id
-            frontier.add(vertex_id)
-            if vertex_id != end_id:
-                move.append((vertex_id, 'Unexplored', 'Frontier'))
-        self.forward_stack.append(move)
-
-        frontier = deque(frontier)
-        while frontier and end_id not in self.predecessors:
-            move = []
-            frontier_id = frontier.pop()
-            move.append((frontier_id, 'Frontier', 'Explored'))
-            neighborhood = self.vertices[frontier_id].neighbors
-            for neighbor_id in neighborhood:
-                if neighbor_id not in self.predecessors:
-                    self.predecessors[neighbor_id] = frontier_id
-                    frontier.append(neighbor_id)
-                    if not neighbor_id == end_id:
-                        move.append((neighbor_id, "Unexplored", "Frontier"))
-            self.forward_stack.append(move)
-
-        if end_id in self.predecessors:
-            move = []
-            previous_id = self.predecessors[end_id]
-            while previous_id:
-                edge_id = self.vertices[end_id].neighbors[previous_id].id
-                move.append((edge_id, "Default", "Highlighted"))
-                end_id = previous_id
-                previous_id = self.predecessors[previous_id]
-            self.forward_stack.append(move)
-
-    def weighted_bfs_setup(self):
-        print('setting up weighted BFS')
-        self.predecessors = dict()
-        self.predecessors[self.start_vertex.id] = None
-        self.traversal_weights[self.start_vertex.id] = 0
-        self.forward_stack = deque()
-        self.back_stack = deque()
-        move = []
-        end_id = self.end_vertex.id
-        frontier = set()
-        for vertex_id in self.start_vertex.neighbors:
-            self.predecessors[vertex_id] = self.start_vertex.id
-            weight = self.start_vertex.neighbors[vertex_id].weight
-            self.traversal_weights[vertex_id] = weight
-            frontier.add(vertex_id)
-            if vertex_id != end_id:
-                move.append((vertex_id, 'Unexplored', 'Frontier', None, weight))
-        self.forward_stack.append(move)
-
-        while frontier and end_id not in self.predecessors:
-            move = []
-            frontier_id = min(frontier, key=lambda x:self.traversal_weights[x])
-            frontier.remove(frontier_id)
-            frontier_weight = self.traversal_weights[frontier_id]
-            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
-            neighborhood = self.vertices[frontier_id].neighbors
-            for neighbor_id in neighborhood:
-                weight = self.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
-                go = neighbor_id not in self.predecessors
-                if not go:
-                    go = weight < self.traversal_weights[neighbor_id]
-                if go:
-                    self.predecessors[neighbor_id] = frontier_id
-                    self.traversal_weights[neighbor_id] = weight
-                    if not neighbor_id == end_id:
-                        frontier.add(neighbor_id)
-                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
-                    else:
-                        move.append((neighbor_id, "End", "End", None, weight))
-            self.forward_stack.append(move)
-
-        while frontier:
-            move = []
-            frontier_id = min(frontier, key=lambda x: self.traversal_weights[x])
-            frontier.remove(frontier_id)
-            frontier_weight = self.traversal_weights[frontier_id]
-            if frontier_weight >= self.traversal_weights[end_id]:
-                break
-            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
-            neighborhood = self.vertices[frontier_id].neighbors
-            for neighbor_id in neighborhood:
-                weight = self.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
-                go = neighbor_id not in self.predecessors
-                if not go:
-                    go = weight < self.traversal_weights[neighbor_id]
-                if go:
-                    self.predecessors[neighbor_id] = frontier_id
-                    self.traversal_weights[neighbor_id] = weight
-                    if not neighbor_id == end_id:
-                        frontier.add(neighbor_id)
-                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
-                    else:
-                        move.append((neighbor_id, "End", "End", None, weight))
-            self.forward_stack.append(move)
-
-        if end_id in self.predecessors:
-            move = []
-            previous_id = self.predecessors[end_id]
-            while previous_id:
-                edge_id = self.vertices[end_id].neighbors[previous_id].id
-                move.append((edge_id, "Default", "Highlighted"))
-                end_id = previous_id
-                previous_id = self.predecessors[previous_id]
-            #end_id = self.end_vertex.id
-            #move.append((end_id, "End", "End", None, self.traversal_weights[end_id]))
-            self.forward_stack.append(move)
-
-    def weighted_bfs_forward(self):
-        if self.forward_stack:
-            move = self.forward_stack.popleft()
-            if move[0][0] in self.vertices:
-                for (vertex_id, state1, state2, weight1, weight2) in move:
-                    vertex = self.vertices[vertex_id]
-                    vertex.set_status(state2)
-                    vertex.display_weight(weight2)
-            else:
-                for (edge_id, state1, state2) in move:
-                    self.edges[edge_id].set_status(state2)
-                #(end_id, state1, state2, weight1, weight2) = move[-1]
-                #self.vertices[end_id].display_weight(weight2)
-            self.back_stack.append(move)
-
-    def weighted_bfs_back(self):
-        if self.back_stack:
-            move = self.back_stack.pop()
-            if move[0][0] in self.vertices:
-                for (vertex_id, state1, state2, weight1, weight2) in move:
-                    vertex = self.vertices[vertex_id]
-                    vertex.set_status(state1)
-                    vertex.display_weight(weight1)
-            else:
-                for (edge_id, state1, state2) in move:
-                    self.edges[edge_id].set_status(state1)
-                #(end_id, state1, state2, weight1, weight2) = move[-1]
-                #self.vertices[end_id].display_weight(weight1)
-            self.forward_stack.appendleft(move)
-
-    # todo delete?
-    def reset_search(self):
-        self.forward_stack = deque()
-        self.back_stack = deque()
-        self.predecessors = dict()
 
     def get_focus(self):
         self.tk.focus_force()

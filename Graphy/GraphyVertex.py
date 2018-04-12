@@ -88,7 +88,7 @@ class GraphyVertex:
             x, y = self.can.coords(self.id)
             x += self.parent.vertex_size // 2
             y += self.parent.vertex_size // 2
-            self.display_text_id = self.can.create_text(x, y, text=weight)
+            self.display_text_id = self.can.create_text(x, y, text=round(weight,2))
 
     def delete(self):
         self.set_unselected()

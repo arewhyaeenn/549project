@@ -1,6 +1,7 @@
 # Search, parent = GraphyMenuBar
 
 from tkinter import *
+from GraphySearch import GraphySearch
 
 
 class GraphyRunSearchDialog:
@@ -15,14 +16,14 @@ class GraphyRunSearchDialog:
         self.tk = Toplevel()
         self.tk.title("Search")
 
-        runSearchOption = Menu(self.tk, tearoff=0)
-        runSearchOption.add_command(label="Undo")
-
         # main frame
         self.x_padding = 20
         self.button_padding = 2
         self.frame = Frame(self.tk)
         self.frame.pack(side='top', padx=self.x_padding, pady=self.button_padding)
+
+        # start GraphySearch
+        self.search = GraphySearch(self)
 
         # dummy for choosing start / end; states = None, 'Start', 'End'
         self.choosing = None
@@ -87,41 +88,43 @@ class GraphyRunSearchDialog:
         self.graphy.get_focus()
 
     def set_search_type(self, *args):
-        self.graphy.set_search_type(self.search_type_var.get())
+        self.search.set_search_type(self.search_type_var.get())
 
     def start_search(self, event):
-        if self.graphy.start_vertex and self.graphy.end_vertex_image:
-            self.graphy.set_search_to_start()
-            self.graphy.search_setup()
-            self.slider.config(to=len(self.graphy.forward_stack))
+        if self.search.start_vertex and self.search.end_vertex:
+            self.search.set_search_to_start()
+            self.search.search_setup()
+            self.slider.config(to=len(self.search.forward_stack))
 
     def search_step_forward(self, event):
-        self.graphy.search_step_forward()
+        self.search.search_step_forward()
         self.increment_slider()
 
     def increment_slider(self):
-        if self.slider.get() >= len(self.graphy.forward_stack)-2:
+        if self.slider.get() >= len(self.search.forward_stack)-2:
             self.slider.set(self.slider.get()+1)
+
+    def search_step_back(self, event):
+        self.search.search_step_back()
+        self.decrement_slider()
 
     def decrement_slider(self):
         if self.slider.get() >= 0:
             self.slider.set(self.slider.get()-1)
 
-    def search_step_back(self, event):
-        self.graphy.search_step_back()
-        self.decrement_slider()
-
     # def update_search(self):
-    #     self.graphy.update_search
+    #     self.search.update_search()
 
     def quit(self):
         self.parent.search_window = None
-        self.graphy.set_search_to_start()
-        if self.graphy.start_vertex:
-            self.graphy.start_vertex.set_status("Unexplored")
-            self.graphy.start_vertex = None
-        if self.graphy.end_vertex:
-            self.graphy.end_vertex.set_status("Unexplored")
-            self.graphy.end_vertex = None
+        self.graphy.search = None
+        self.search.set_search_to_start()
+        if self.search.start_vertex:
+            self.search.start_vertex.set_status("Unexplored")
+            self.search.start_vertex = None
+        if self.search.end_vertex:
+            self.search.end_vertex.set_status("Unexplored")
+            self.search.end_vertex = None
         self.tk.destroy()
+        del self.search
         del self
