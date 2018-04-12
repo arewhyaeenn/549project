@@ -58,6 +58,9 @@ class Graphy:
         self.forward_stack = None  # popleft() to get move forward
         self.back_stack = None  # popright() to get get move backward
         self.predecessors = dict()
+        self.search_setup = None
+        self.search_step_forward = None
+        self.search_step_back = None
 
         # selection and movement tracking
         self.held_vertex = None
@@ -310,8 +313,48 @@ class Graphy:
         for edge in self.edges.values():
             edge.set_weight_from_scale(scale)
 
-    def bfs_setup(self):
-        # todo check if start and end vertices exist in GraphySearchDialog before running search
+    def set_search_type(self, search_type):
+        self.set_search_to_start()
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        self.predecessors = dict()
+        if search_type == "Simple Breadth-First":
+            self.search_setup = self.simple_bfs_setup
+            self.search_step_forward = self.simple_bfs_forward
+            self.search_step_back = self.simple_bfs_back
+        elif search_type == "Simple Depth-First":
+            # todo
+            self.search_setup = self.simple_dfs_setup
+            self.search_step_forward = self.simple_bfs_forward  # simple bfs and dfs can use same stack controls
+            self.search_step_back = self.simple_bfs_back
+        elif search_type == "Weighted Breadth-First":
+            # todo
+            self.search_setup = self.simple_bfs_setup
+            self.search_step_forward = self.simple_bfs_forward
+            self.search_step_back = self.simple_bfs_back
+        elif search_type == "Weighted Depth-First":
+            # todo
+            self.search_setup = self.simple_bfs_setup
+            self.search_step_forward = self.simple_bfs_forward
+            self.search_step_back = self.simple_bfs_back
+        elif search_type == "A*":
+            # todo
+            self.search_setup = self.simple_bfs_setup
+            self.search_step_forward = self.simple_bfs_forward
+            self.search_step_back = self.simple_bfs_back
+        else:
+            print('invalid search type selected')
+
+    def set_search_to_start(self):
+        while self.back_stack:
+            self.search_step_back()
+
+    def set_search_to_end(self):
+        while self.forward_stack:
+            self.search_step_forward()
+
+    def simple_bfs_setup(self):
+        print('setting up simple BFS')
         self.predecessors = dict()
         self.predecessors[self.start_vertex.id] = None
         self.forward_stack = deque()
@@ -350,7 +393,7 @@ class Graphy:
                 previous_id = self.predecessors[previous_id]
             self.forward_stack.append(move)
 
-    def bfs_forward(self, event):
+    def simple_bfs_forward(self):
         if self.forward_stack:
             move = self.forward_stack.popleft()
             if move[0][0] in self.vertices:
@@ -361,7 +404,7 @@ class Graphy:
                     self.edges[edge_id].set_status(state2)
             self.back_stack.append(move)
 
-    def bfs_back(self, event):
+    def simple_bfs_back(self):
         if self.back_stack:
             move = self.back_stack.pop()
             if move[0][0] in self.vertices:
@@ -371,6 +414,51 @@ class Graphy:
                 for (edge_id, state1, state2) in move:
                     self.edges[edge_id].set_status(state1)
             self.forward_stack.appendleft(move)
+
+    def simple_dfs_setup(self):
+        print('setting up simple DFS')
+        self.predecessors = dict()
+        self.predecessors[self.start_vertex.id] = None
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        move = []
+        end_id = self.end_vertex.id
+        frontier = set()
+        for vertex_id in self.start_vertex.neighbors:
+            self.predecessors[vertex_id] = self.start_vertex.id
+            frontier.add(vertex_id)
+            if vertex_id != end_id:
+                move.append((vertex_id, 'Unexplored', 'Frontier'))
+        self.forward_stack.append(move)
+
+        frontier = deque(frontier)
+        while frontier and end_id not in self.predecessors:
+            move = []
+            frontier_id = frontier.pop()
+            move.append((frontier_id, 'Frontier', 'Explored'))
+            neighborhood = self.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                if neighbor_id not in self.predecessors:
+                    self.predecessors[neighbor_id] = frontier_id
+                    frontier.append(neighbor_id)
+                    if not neighbor_id == end_id:
+                        move.append((neighbor_id, "Unexplored", "Frontier"))
+            self.forward_stack.append(move)
+
+        if end_id in self.predecessors:
+            move = []
+            previous_id = self.predecessors[end_id]
+            while previous_id:
+                edge_id = self.vertices[end_id].neighbors[previous_id].id
+                move.append((edge_id, "Default", "Highlighted"))
+                end_id = previous_id
+                previous_id = self.predecessors[previous_id]
+            self.forward_stack.append(move)
+
+    def reset_search(self):
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        self.predecessors = dict()
 
     def get_focus(self):
         self.tk.focus_force()

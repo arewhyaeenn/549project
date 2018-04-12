@@ -40,11 +40,17 @@ class GraphyRunSearchDialog:
 
         # set up search type selection
         self.search_type_var = StringVar(self.frame)
-        self.search_type_var.set('BFS')
-        self.search_type_menu = OptionMenu(self.frame, self.search_type_var, 'Breadth-First','Depth-First','A*')
+        self.search_type_menu = OptionMenu(self.frame, self.search_type_var,
+                                           "Simple Breadth-First",
+                                           "Simple Depth-First",
+                                           "Weighted Breadth-First",
+                                           "Weighted Depth-First",
+                                           "A*")
         self.search_type_menu.config(bg='wheat', activebackground='burlywood')
         self.search_type_menu['menu'].config(bg='wheat')
         self.search_type_menu.grid(row=1, column=0, columnspan=2, sticky=NSEW)
+        self.search_type_var.trace('w', self.set_search_type)
+        self.search_type_var.set('Breadth-First')
 
         # set up search start button
         self.start_search_button = Button(self.frame, text='Start Search', bg='lightblue', activebackground='lightskyblue')
@@ -54,10 +60,10 @@ class GraphyRunSearchDialog:
         # rough draft forward/back buttons to test search methods; will error if search is not running!
         self.forward_button = Button(self.frame, text='Next')
         self.forward_button.grid(row=3, column=1, sticky=NSEW)
-        self.forward_button.bind('<Button-1>', self.graphy.bfs_forward)
+        self.forward_button.bind('<Button-1>', self.search_step_forward)
         self.back_button = Button(self.frame, text='Back')
         self.back_button.grid(row=3, column=0, sticky=NSEW)
-        self.back_button.bind('<Button-1>', self.graphy.bfs_back)
+        self.back_button.bind('<Button-1>', self.search_step_back)
 
         # rebind exit button
         self.tk.protocol('WM_DELETE_WINDOW', self.quit)
@@ -82,12 +88,28 @@ class GraphyRunSearchDialog:
         self.graphy.is_setting_search_vertex = 'End'
         self.graphy.get_focus()
 
+    def set_search_type(self, *args):
+        self.graphy.set_search_type(self.search_type_var.get())
+
     def start_search(self, event):
-        print('"Start Search" button pressed')
         if self.graphy.start_vertex and self.graphy.end_vertex_image:
-            self.graphy.bfs_setup()
+            self.graphy.set_search_to_start()
+            self.graphy.search_setup()
+
+    def search_step_forward(self, event):
+        self.graphy.search_step_forward()
+
+    def search_step_back(self, event):
+        self.graphy.search_step_back()
 
     def quit(self):
         self.parent.search_window = None
+        self.graphy.set_search_to_start()
+        if self.graphy.start_vertex:
+            self.graphy.start_vertex.set_status("Unexplored")
+            self.graphy.start_vertex = None
+        if self.graphy.end_vertex:
+            self.graphy.end_vertex.set_status("Unexplored")
+            self.graphy.end_vertex = None
         self.tk.destroy()
         del self
