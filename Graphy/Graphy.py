@@ -58,6 +58,7 @@ class Graphy:
         self.forward_stack = None  # popleft() to get move forward
         self.back_stack = None  # popright() to get get move backward
         self.predecessors = dict()
+        self.traversal_weights = dict()
         self.search_setup = None
         self.search_step_forward = None
         self.search_step_back = None
@@ -318,6 +319,7 @@ class Graphy:
         self.forward_stack = deque()
         self.back_stack = deque()
         self.predecessors = dict()
+        self.traversal_weights = dict()
         if search_type == "Simple Breadth-First":
             self.search_setup = self.simple_bfs_setup
             self.search_step_forward = self.simple_bfs_forward
@@ -329,9 +331,9 @@ class Graphy:
             self.search_step_back = self.simple_bfs_back
         elif search_type == "Weighted Breadth-First":
             # todo
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_bfs_forward
-            self.search_step_back = self.simple_bfs_back
+            self.search_setup = self.weighted_bfs_setup
+            self.search_step_forward = self.weighted_bfs_forward
+            self.search_step_back = self.weighted_bfs_back
         elif search_type == "Weighted Depth-First":
             # todo
             self.search_setup = self.simple_bfs_setup
@@ -455,6 +457,114 @@ class Graphy:
                 previous_id = self.predecessors[previous_id]
             self.forward_stack.append(move)
 
+    def weighted_bfs_setup(self):
+        print('setting up weighted BFS')
+        self.predecessors = dict()
+        self.predecessors[self.start_vertex.id] = None
+        self.traversal_weights[self.start_vertex.id] = 0
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        move = []
+        end_id = self.end_vertex.id
+        frontier = set()
+        for vertex_id in self.start_vertex.neighbors:
+            self.predecessors[vertex_id] = self.start_vertex.id
+            weight = self.start_vertex.neighbors[vertex_id].weight
+            self.traversal_weights[vertex_id] = weight
+            frontier.add(vertex_id)
+            if vertex_id != end_id:
+                move.append((vertex_id, 'Unexplored', 'Frontier', None, weight))
+        self.forward_stack.append(move)
+
+        while frontier and end_id not in self.predecessors:
+            move = []
+            frontier_id = min(frontier, key=lambda x:self.traversal_weights[x])
+            frontier.remove(frontier_id)
+            frontier_weight = self.traversal_weights[frontier_id]
+            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
+            neighborhood = self.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                weight = self.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
+                go = neighbor_id not in self.predecessors
+                if not go:
+                    go = weight < self.traversal_weights[neighbor_id]
+                if go:
+                    self.predecessors[neighbor_id] = frontier_id
+                    self.traversal_weights[neighbor_id] = weight
+                    if not neighbor_id == end_id:
+                        frontier.add(neighbor_id)
+                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
+                    else:
+                        move.append((neighbor_id, "End", "End", None, weight))
+            self.forward_stack.append(move)
+
+        while frontier:
+            move = []
+            frontier_id = min(frontier, key=lambda x: self.traversal_weights[x])
+            frontier.remove(frontier_id)
+            frontier_weight = self.traversal_weights[frontier_id]
+            if frontier_weight >= self.traversal_weights[end_id]:
+                break
+            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
+            neighborhood = self.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                weight = self.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
+                go = neighbor_id not in self.predecessors
+                if not go:
+                    go = weight < self.traversal_weights[neighbor_id]
+                if go:
+                    self.predecessors[neighbor_id] = frontier_id
+                    self.traversal_weights[neighbor_id] = weight
+                    if not neighbor_id == end_id:
+                        frontier.add(neighbor_id)
+                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
+                    else:
+                        move.append((neighbor_id, "End", "End", None, weight))
+            self.forward_stack.append(move)
+
+        if end_id in self.predecessors:
+            move = []
+            previous_id = self.predecessors[end_id]
+            while previous_id:
+                edge_id = self.vertices[end_id].neighbors[previous_id].id
+                move.append((edge_id, "Default", "Highlighted"))
+                end_id = previous_id
+                previous_id = self.predecessors[previous_id]
+            #end_id = self.end_vertex.id
+            #move.append((end_id, "End", "End", None, self.traversal_weights[end_id]))
+            self.forward_stack.append(move)
+
+    def weighted_bfs_forward(self):
+        if self.forward_stack:
+            move = self.forward_stack.popleft()
+            if move[0][0] in self.vertices:
+                for (vertex_id, state1, state2, weight1, weight2) in move:
+                    vertex = self.vertices[vertex_id]
+                    vertex.set_status(state2)
+                    vertex.display_weight(weight2)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.edges[edge_id].set_status(state2)
+                #(end_id, state1, state2, weight1, weight2) = move[-1]
+                #self.vertices[end_id].display_weight(weight2)
+            self.back_stack.append(move)
+
+    def weighted_bfs_back(self):
+        if self.back_stack:
+            move = self.back_stack.pop()
+            if move[0][0] in self.vertices:
+                for (vertex_id, state1, state2, weight1, weight2) in move:
+                    vertex = self.vertices[vertex_id]
+                    vertex.set_status(state1)
+                    vertex.display_weight(weight1)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.edges[edge_id].set_status(state1)
+                #(end_id, state1, state2, weight1, weight2) = move[-1]
+                #self.vertices[end_id].display_weight(weight1)
+            self.forward_stack.appendleft(move)
+
+    # todo delete?
     def reset_search(self):
         self.forward_stack = deque()
         self.back_stack = deque()

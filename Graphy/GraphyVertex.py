@@ -15,6 +15,8 @@ class GraphyVertex:
         self.label = ''
         self.status = status
 
+        self.display_text_id = None
+
     def update_position(self, x, y):
         self.can.coords(self.id, x, y)
         if self.selected:
@@ -81,3 +83,11 @@ class GraphyVertex:
             self.can.itemconfig(self.id, image=self.parent.end_vertex_image)
         else:
             print('Vertex set to unsupported status.')
+
+    def display_weight(self, weight):
+        if self.display_text_id:
+            self.can.delete(self.display_text_id)
+        x, y = self.can.coords(self.id)
+        x += self.parent.vertex_size // 2
+        y += self.parent.vertex_size // 2
+        self.display_text_id = self.can.create_text(x, y, text=weight)

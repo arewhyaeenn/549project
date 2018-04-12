@@ -50,7 +50,7 @@ class GraphyRunSearchDialog:
         self.search_type_menu['menu'].config(bg='wheat')
         self.search_type_menu.grid(row=1, column=0, columnspan=2, sticky=NSEW)
         self.search_type_var.trace('w', self.set_search_type)
-        self.search_type_var.set('Breadth-First')
+        self.search_type_var.set('Simple Breadth-First')
 
         # set up search start button
         self.start_search_button = Button(self.frame, text='Start Search', bg='lightblue', activebackground='lightskyblue')
