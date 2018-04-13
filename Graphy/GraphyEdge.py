@@ -3,29 +3,36 @@ from math import sqrt
 
 class GraphyEdge:
 
-    def __init__(self, parent, vertex, event):
+    def __init__(self, parent, vertex, event, start_vertex_id=None, end_vertex_id=None, label='', weight=1):
 
         self.width = 1
         self.selected_width = 3
-        vertex_id = vertex.id
         self.parent = parent
         self.can = self.parent.can
-        self.coords = [*self.can.coords(vertex_id), event.x, event.y]
+        if event:
+            vertex_id = vertex.id
+            self.coords = [*self.can.coords(vertex_id), event.x, event.y]
+            self.vertices = {vertex_id: 0}
+            vertex.add_edge(self, None)
+        else:
+            self.vertices = {start_vertex_id:0, end_vertex_id:2}
+            self.coords = [*self.can.coords(start_vertex_id), *self.can.coords(end_vertex_id)]
         self.id = self.can.create_line(*self.coords)
         self.drop()
-
-        self.vertices = {vertex_id: 0}  # vertex id to 0,2 for offsetting coordinate indices
-        vertex.add_edge(self, None)
         self.parent.edges[self.id] = self
 
         self.selected = False
-        self.label = ''
-        self.weight = 1
+        self.label = label
+        self.weight = weight
 
-    def update_endpoint_at_id(self, vertex_id, x, y):
+    def update_endpoint_at_id(self, vertex_id, x=None, y=None):
 
         # indexing offset
         delta = self.vertices[vertex_id]
+
+        # get coords if not given
+        if not x:
+            x, y = self.can.coords(vertex_id)
 
         # update coordinates
         self.coords[0+delta] = x
@@ -97,7 +104,7 @@ class GraphyEdge:
         self.parent.inspector.set_unselected()
 
     def set_label(self, label):
-        self.label = label
+        self.label = str(label)
 
     def set_weight(self, weight):
         self.weight = weight

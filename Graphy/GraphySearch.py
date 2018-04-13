@@ -22,13 +22,13 @@ class GraphySearch:
         self.end_vertex = None
 
         # search data
-        self.predecessors = dict()
-        self.traversal_weights = dict()
-        self.heuristic_weights = dict()
+        self.predecessors = dict()  # vertex_id --> id of preceding vertex in path from start_vertex
+        self.traversal_weights = dict()  # vertex_id --> distance from start_vertex
+        self.heuristic_weights = dict()  # vertex_id --> estimated distance to end_vertex
 
         # playback data
-        self.forward_stack = deque()
-        self.back_stack = deque()
+        self.forward_stack = deque()  # forward_stack.popleft() is "next move"
+        self.back_stack = deque()  # back_stack.pop() is "previous move"
 
     def set_search_type(self, search_type):
         self.set_search_to_start()

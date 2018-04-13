@@ -1,5 +1,5 @@
 # Menu Bar, parent = Graphy
-from tkinter import Menu
+from tkinter import Menu, filedialog, messagebox
 from GraphyRunSearchDialog import GraphyRunSearchDialog
 from GraphyWeightDialog import GraphyWeightDialog
 
@@ -23,9 +23,9 @@ class GraphyMenuBar:
         self.filemenu = Menu(self.menubar)
         self.filemenu.add_command(label="Run Search", command=self.start_search)
         self.filemenu.add_command(label="Set Weights", command=self.set_weights)
-        self.filemenu.add_command(label="Save As...", command=self.do_nothing)  # TODO
+        self.filemenu.add_command(label="Save As...", command=self.save_as)  # TODO
         self.filemenu.add_command(label="Save", command=self.do_nothing)  # TODO
-        self.filemenu.add_command(label="Open", command=self.do_nothing)  # TODO
+        self.filemenu.add_command(label="Open", command=self.open)  # TODO
         self.filemenu.add_command(label="Quit", command=self.tk.destroy)
         self.menubar.add_cascade(label="File", menu=self.filemenu)
 
@@ -59,3 +59,98 @@ class GraphyMenuBar:
             self.weight_window = GraphyWeightDialog(self)
 
         self.weight_window.get_focus()
+
+    # label ; position ; adjacencies by weight ('None' for no adjacency, only list those after selected) ; adjacencies by label, '__None__' for no adj
+    # position and adjacencies are both comma separated
+    def save_as(self):
+        file = filedialog.asksaveasfile(mode='w', defaultextension=".graphy")
+        if file is None:
+            return
+        vertices = sorted(self.parent.vertices)
+        vertex_count = len(vertices)
+        lines = []
+        i = 0
+        while i < vertex_count:
+            vertex_id = vertices[i]
+            vertex = self.parent.vertices[vertex_id]
+            line = vertex.label + ';'
+            line += str(vertex.pos_x) + ',' + str(vertex.pos_y) + ';'
+            j = i+1
+            adj_labels = ''
+            while j < vertex_count:
+                other_vertex_id = vertices[j]
+                if other_vertex_id in vertex.neighbors:
+                    edge = vertex.neighbors[other_vertex_id]
+                    line += str(edge.weight) + ','
+                    adj_labels += edge.label + ','
+                else:
+                    line += 'None,'
+                    adj_labels += '__None__,'
+                j += 1
+            if line:
+                if line[-1] == ',':
+                    line = line[:-1]
+            if adj_labels:
+                if adj_labels[-1] == ',':
+                    adj_labels = adj_labels[:-1]
+            lines.append(line + ';' + adj_labels)
+            i += 1
+        contents = '\n'.join(lines)
+        file.write(contents)
+        file.close()
+
+    def open(self):
+        proceed = True
+        if self.parent.vertices:
+            proceed = messagebox.askyesno(title="Open File?", message="Any unsaved progress will be lost. Are you sure?")
+        if proceed:
+            file = open(filedialog.askopenfilename(), 'r')
+            if file is None:
+                return
+            vertices = self.parent.vertices.values()
+            for vertex in vertices:
+                vertex.delete()
+            self.parent.reset_canvas()
+            lines = file.readlines()
+            vertex_ids = []
+            adjacencies = []
+            adjacency_labels = []
+            for line in lines:
+                label, position, adjacency, adj_labels = line.split(';')
+                x, y = position.split(',')
+                vertex_id = self.parent.open_file_create_vertex(int(x), int(y), label)
+                vertex_ids.append(vertex_id)
+                adjacency = [self.float_or_none(weight) for weight in adjacency.split(',') if weight]
+                adjacencies.append(adjacency)
+                adj_labels = [self.label_or_none(x) for x in adj_labels.split(',') if x]
+                adjacency_labels.append(adj_labels)
+            i = 0
+            while i < len(vertex_ids):
+                vertex_id = vertex_ids[i]
+                j = 0
+                while j < len(adjacencies[i]):
+                    if adjacencies[i][j]:
+                        other_vertex_id = vertex_ids[i + j + 1]
+                        weight = adjacencies[i][j]
+                        edge_label = adjacency_labels[i][j]
+                        edge = self.parent.open_file_create_edge(vertex_id, other_vertex_id, edge_label, weight)
+                        self.parent.vertices[vertex_id].add_neighbor(other_vertex_id, edge)
+                        self.parent.vertices[other_vertex_id].add_neighbor(vertex_id, edge)
+                        edge.update_endpoint_at_id(vertex_id)
+                        edge.update_endpoint_at_id(other_vertex_id)
+                    j += 1
+                i += 1
+
+    @staticmethod
+    def float_or_none(x):
+        if x == 'None':
+            return None
+        else:
+            return float(x)
+
+    @staticmethod
+    def label_or_none(x):
+        if x == '__None__':
+            return None
+        else:
+            return x

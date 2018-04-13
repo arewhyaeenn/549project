@@ -283,12 +283,23 @@ class Graphy:
         if not self.held_vertex:
             self.held_vertex = GraphyVertex(self,
                                             self.unexplored_vertex_image,
-                                            'Unexplored',
+                                            "Unexplored",
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
             self.vertex_count += 1
             self.held_vertex.set_label(self.vertex_count)
+
+    def open_file_create_vertex(self, x, y, label):
+        new_vertex = GraphyVertex(self, self.unexplored_vertex_image, "Unexplored", x, y)
+        self.vertices[new_vertex.id] = new_vertex
+        new_vertex.set_label(label)
+        self.vertex_count += 1
+        return new_vertex.id
+
+    def open_file_create_edge(self, vertex_id_1, vertex_id_2, label, weight):
+        new_edge = GraphyEdge(self, None, None, start_vertex_id=vertex_id_1, end_vertex_id=vertex_id_2, label=label, weight=weight)
+        return new_edge
 
     def set_search_vertex(self, vertex):
         if self.is_setting_search_vertex == 'Start':
@@ -321,6 +332,11 @@ class Graphy:
 
     def get_focus(self):
         self.tk.focus_force()
+
+    def reset_canvas(self):
+        self.offset_x = 0
+        self.offset_y = 0
+        self.vertex_count = 0
 
     def quit(self):
         self.isPlaying = False

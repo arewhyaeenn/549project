@@ -1,4 +1,4 @@
-# Vertex, parent = Graphy (master = Graphy.can)
+# Vertex, parent = Graphy
 
 
 class GraphyVertex:
@@ -12,11 +12,11 @@ class GraphyVertex:
         # canvas setup
         self.image = image
         self.id = self.can.create_image(mousex, mousey, image=self.image)
-        self.set_status(status)
+        self.status = status
 
         # graph utilities
         self.edges = set()
-        self.neighbors = dict() #  neighbor id --> corresponding edge
+        self.neighbors = dict()  # neighboring vertex id --> corresponding edge
         self.selected = False
         self.label = ''
 
@@ -49,7 +49,6 @@ class GraphyVertex:
                 edge.die()
             else:
                 self.add_neighbor(vertex_id, edge)
-                self.edges.add(edge)
                 self.parent.vertices[vertex_id].add_neighbor(self.id, edge)
                 edge.update_trailing_end(*self.can.coords(self.id))
         else:
@@ -60,6 +59,7 @@ class GraphyVertex:
 
     def add_neighbor(self, vertex_id, edge):
         self.neighbors[vertex_id] = edge
+        self.edges.add(edge)
 
     def set_selected(self):
         if self.selected:
@@ -79,7 +79,7 @@ class GraphyVertex:
         self.parent.inspector.set_unselected()
 
     def set_label(self, label):
-        self.label = label
+        self.label = str(label)
 
     def set_default(self):
         self.set_status('Unexplored')
