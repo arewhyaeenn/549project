@@ -32,10 +32,14 @@ class GraphyVertex:
         self.pos_y = y - self.parent.offset_y
         if self.selected:
             self.can.coords(self.parent.selected_icon_id, x, y)
+        if self.display_text_id:
+            self.can.coords(self.display_text_id, *self.get_display_coords())
         self.update_edge_positions(x, y)
 
     def translate(self, deltax, deltay):
         self.can.move(self.id, deltax, deltay)
+        if self.display_text_id:
+            self.can.move(self.display_text_id, deltax, deltay)
         x, y = self.can.coords(self.id)
         self.update_edge_positions(x, y)
 
@@ -104,10 +108,14 @@ class GraphyVertex:
             self.can.delete(self.display_text_id)
             self.display_text_id = None
         if weight:
-            x, y = self.can.coords(self.id)
-            x += self.parent.vertex_size // 2
-            y += self.parent.vertex_size // 2
+            x, y = self.get_display_coords()
             self.display_text_id = self.can.create_text(x, y, text=round(weight,2))
+
+    def get_display_coords(self):
+        x,y = self.can.coords(self.id)
+        x += self.parent.vertex_size // 1.5
+        y += self.parent.vertex_size // 1.5
+        return x,y
 
     def delete(self):
         self.set_unselected()

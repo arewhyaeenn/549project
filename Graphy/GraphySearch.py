@@ -69,6 +69,14 @@ class GraphySearch:
         while self.forward_stack:
             self.search_step_forward()
 
+    def end_search(self):
+        self.set_search_to_start()
+        self.predecessors = dict()
+        self.traversal_weights = dict()
+        self.heuristic_weights = dict()
+        self.forward_stack = deque()
+        self.back_stack = deque()
+
     def simple_bfs_setup(self):
         print('setting up simple BFS')
         self.predecessors = dict()

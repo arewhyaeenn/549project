@@ -107,10 +107,32 @@ class Graphy:
         # selected vertex image (red outline)
         self.selected_icon_size = int(1.25 * self.vertex_size)
         selected_vertex_image = Image.open("images/SelectedVertexIcon.png")
-        selected_vertex_image = selected_vertex_image.resize((self.selected_icon_size,
-                                                             self.selected_icon_size),
-                                                             Image.ANTIALIAS)
+        selected_vertex_image = selected_vertex_image.resize((self.selected_icon_size, self.selected_icon_size), Image.ANTIALIAS)
         self.selected_vertex_image = ImageTk.PhotoImage(selected_vertex_image)
+
+        # search playback control images
+        self.search_image_width = 60
+        self.search_image_height = 20
+
+        # search step forward image
+        step_forward_image = Image.open("images/StepForwardButton.png")
+        step_forward_image = step_forward_image.resize((self.search_image_width, self.search_image_height), Image.ANTIALIAS)
+        self.step_forward_image = ImageTk.PhotoImage(step_forward_image)
+
+        # search step back image
+        step_back_image = Image.open("images/StepBackButton.png")
+        step_back_image = step_back_image.resize((self.search_image_width, self.search_image_height), Image.ANTIALIAS)
+        self.step_back_image = ImageTk.PhotoImage(step_back_image)
+
+        # search to end image
+        search_to_end_image = Image.open("images/SearchToEndButton.png")
+        search_to_end_image = search_to_end_image.resize((self.search_image_width, self.search_image_height), Image.ANTIALIAS)
+        self.search_to_end_image = ImageTk.PhotoImage(search_to_end_image)
+
+        # search to start image
+        search_to_start_image = Image.open("images/SearchToStartButton.png")
+        search_to_start_image = search_to_start_image.resize((self.search_image_width, self.search_image_height), Image.ANTIALIAS)
+        self.search_to_start_image = ImageTk.PhotoImage(search_to_start_image)
 
         # legend
         self.legend = GraphyLegend(self)
@@ -302,15 +324,19 @@ class Graphy:
         return new_edge
 
     def set_search_vertex(self, vertex):
-        if self.is_setting_search_vertex == 'Start':
+        if self.is_setting_search_vertex == "Start":
             if self.search.start_vertex:
                 self.search.start_vertex.set_default()
-            vertex.set_status('Start')
+            if vertex.status == "End":
+                self.search.end_vertex = None
+            vertex.set_status("Start")
             self.search.start_vertex = vertex
-        elif self.is_setting_search_vertex == 'End':
+        elif self.is_setting_search_vertex == "End":
             if self.search.end_vertex:
                 self.search.end_vertex.set_default()
-            vertex.set_status('End')
+            if vertex.status == "Start":
+                self.search.start_vertex = None
+            vertex.set_status("End")
             self.search.end_vertex = vertex
         self.inspector.update()
 
@@ -337,6 +363,10 @@ class Graphy:
         self.offset_x = 0
         self.offset_y = 0
         self.vertex_count = 0
+
+    def delete_search(self):
+        if self.search:
+            self.search = None
 
     def quit(self):
         self.isPlaying = False

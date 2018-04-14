@@ -107,7 +107,7 @@ class GraphyMenuBar:
             file = open(filedialog.askopenfilename(), 'r')
             if file is None:
                 return
-            vertices = self.parent.vertices.values()
+            vertices = list(self.parent.vertices.values())
             for vertex in vertices:
                 vertex.delete()
             self.parent.reset_canvas()
@@ -140,6 +140,9 @@ class GraphyMenuBar:
                         edge.update_endpoint_at_id(other_vertex_id)
                     j += 1
                 i += 1
+
+    def delete_search_window(self):
+        self.search_window = None
 
     @staticmethod
     def float_or_none(x):
