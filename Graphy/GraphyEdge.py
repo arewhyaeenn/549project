@@ -115,9 +115,9 @@ class GraphyEdge:
 
     def set_status(self, state):
         if state == "Default":
-            self.can.itemconfig(self.id, fill='black')
+            self.can.itemconfig(self.id, fill='black', width=1)
         elif state == "Highlighted":
-            self.can.itemconfig(self.id, fill='orange')
+            self.can.itemconfig(self.id, fill='green', width=6)
         else:
             print('edge set to invalid state')
 

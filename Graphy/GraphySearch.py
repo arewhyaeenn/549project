@@ -47,17 +47,16 @@ class GraphySearch:
             self.search_step_back = self.simple_back
         elif search_type == "Weighted Breadth-First":
             self.search_setup = self.weighted_bfs_setup
-            self.search_step_forward = self.complex_forward
-            self.search_step_back = self.complex_back
+            self.search_step_forward = self.weighted_forward
+            self.search_step_back = self.weighted_back
         elif search_type == "Weighted Depth-First":
-            # todo
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_forward
-            self.search_step_back = self.simple_back
+            self.search_setup = self.weighted_dfs_setup
+            self.search_step_forward = self.weighted_forward
+            self.search_step_back = self.weighted_back
         elif search_type == "A*":
             self.search_setup = self.a_star_setup
-            self.search_step_forward = self.complex_forward
-            self.search_step_back = self.complex_back
+            self.search_step_forward = self.weighted_forward
+            self.search_step_back = self.weighted_back
         else:
             print('invalid search type selected')
 
@@ -264,31 +263,61 @@ class GraphySearch:
             if move:
                 self.forward_stack.append(move)
 
-    def complex_forward(self):
-        if self.forward_stack:
-            move = self.forward_stack.popleft()
-            if move[0][0] in self.graphy.vertices:
-                for (vertex_id, state1, state2, weight1, weight2) in move:
-                    vertex = self.graphy.vertices[vertex_id]
-                    vertex.set_status(state2)
-                    vertex.display_weight(weight2)
+    def weighted_dfs_setup(self):
+        print('setting up weighted DFS')
+        self.predecessors = dict()
+        self.predecessors[self.start_vertex.id] = None
+        self.traversal_weights[self.start_vertex.id] = 0
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        move = []
+        end_id = self.end_vertex.id
+        frontier = set()
+        proceed = True
+        for vertex_id in self.start_vertex.neighbors:
+            self.predecessors[vertex_id] = self.start_vertex.id
+            weight = self.start_vertex.neighbors[vertex_id].weight
+            self.traversal_weights[vertex_id] = weight
+            frontier.add(vertex_id)
+            if vertex_id == end_id:
+                move.append((vertex_id, "End", "End", [], [weight]))
+                proceed = False
             else:
-                for (edge_id, state1, state2) in move:
-                    self.graphy.edges[edge_id].set_status(state2)
-            self.back_stack.append(move)
+                move.append((vertex_id, "Unexplored", "Frontier", [], [weight]))
+        if move:
+            self.forward_stack.append(move)
+        proceed = True
+        while frontier and proceed:
+            move = []
+            frontier_id = max(frontier, key=lambda x: self.traversal_weights[x])
+            frontier.remove(frontier_id)
+            frontier_weight = self.traversal_weights[frontier_id]
+            move.append((frontier_id, 'Frontier', 'Explored', [frontier_weight], []))
+            neighborhood = self.graphy.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                weight = self.graphy.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
+                if neighbor_id not in self.predecessors:
+                    self.predecessors[neighbor_id] = frontier_id
+                    self.traversal_weights[neighbor_id] = weight
+                    frontier.add(neighbor_id)
+                    if neighbor_id == end_id:
+                        move.append((neighbor_id, "End", "End", [], [weight]))
+                        proceed = False
+                    else:
+                        move.append((neighbor_id, "Unexplored", "Frontier", [], [weight]))
+            if move:
+                self.forward_stack.append(move)
 
-    def complex_back(self):
-        if self.back_stack:
-            move = self.back_stack.pop()
-            if move[0][0] in self.graphy.vertices:
-                for (vertex_id, state1, state2, weight1, weight2) in move:
-                    vertex = self.graphy.vertices[vertex_id]
-                    vertex.set_status(state1)
-                    vertex.display_weight(weight1)
-            else:
-                for (edge_id, state1, state2) in move:
-                    self.graphy.edges[edge_id].set_status(state1)
-            self.forward_stack.appendleft(move)
+        if end_id in self.predecessors:
+            move = []
+            previous_id = self.predecessors[end_id]
+            while previous_id:
+                edge_id = self.graphy.vertices[end_id].neighbors[previous_id].id
+                move.append((edge_id, "Default", "Highlighted"))
+                end_id = previous_id
+                previous_id = self.predecessors[previous_id]
+            if move:
+                self.forward_stack.append(move)
 
     def a_star_setup(self):
         print('setting up A*')
@@ -307,7 +336,6 @@ class GraphySearch:
         for vertex_id in self.graphy.vertices:
             start_coords = self.graphy.can.coords(vertex_id)
             self.heuristic_weights[vertex_id] = scale * self.euclidean_distance(*start_coords, *end_coords)
-        print(self.heuristic_weights[end_id])
 
         explored.add(self.start_vertex.id)
         for vertex_id in self.start_vertex.neighbors:
@@ -367,6 +395,32 @@ class GraphySearch:
                 previous_id = self.predecessors[previous_id]
             if move:
                 self.forward_stack.append(move)
+
+    def weighted_forward(self):
+        if self.forward_stack:
+            move = self.forward_stack.popleft()
+            if move[0][0] in self.graphy.vertices:
+                for (vertex_id, state1, state2, weight1, weight2) in move:
+                    vertex = self.graphy.vertices[vertex_id]
+                    vertex.set_status(state2)
+                    vertex.display_weight(weight2)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.graphy.edges[edge_id].set_status(state2)
+            self.back_stack.append(move)
+
+    def weighted_back(self):
+        if self.back_stack:
+            move = self.back_stack.pop()
+            if move[0][0] in self.graphy.vertices:
+                for (vertex_id, state1, state2, weight1, weight2) in move:
+                    vertex = self.graphy.vertices[vertex_id]
+                    vertex.set_status(state1)
+                    vertex.display_weight(weight1)
+            else:
+                for (edge_id, state1, state2) in move:
+                    self.graphy.edges[edge_id].set_status(state1)
+            self.forward_stack.appendleft(move)
 
     @staticmethod
     def euclidean_distance(x1, y1, x2, y2):
