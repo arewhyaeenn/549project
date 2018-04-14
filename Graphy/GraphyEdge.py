@@ -1,6 +1,7 @@
 # Edge, parent = Graphy (master = Graphy.can)
 from math import sqrt
 
+
 class GraphyEdge:
 
     def __init__(self, parent, vertex, event, start_vertex_id=None, end_vertex_id=None, label='', weight=1):
@@ -15,14 +16,15 @@ class GraphyEdge:
             self.vertices = {vertex_id: 0}
             vertex.add_edge(self, None)
         else:
-            self.vertices = {start_vertex_id:0, end_vertex_id:2}
+            self.vertices = {start_vertex_id: 0, end_vertex_id: 2}
             self.coords = [*self.can.coords(start_vertex_id), *self.can.coords(end_vertex_id)]
         self.id = self.can.create_line(*self.coords)
         self.drop()
         self.parent.edges[self.id] = self
 
         self.selected = False
-        self.label = label
+        self.label = ''
+        self.set_label(label)
         self.weight = weight
 
     def update_endpoint_at_id(self, vertex_id, x=None, y=None):
@@ -90,9 +92,7 @@ class GraphyEdge:
             self.set_unselected()
         else:
             self.selected = True
-            self.parent.selected_icon_id = self.can.create_line(*self.coords,
-                                                                width=self.selected_width,
-                                                                fill=self.parent.hex_from_rgb((255, 50, 50)))
+            self.parent.selected_icon_id = self.can.create_line(*self.coords, width=self.selected_width, fill=self.parent.hex_from_rgb((255, 50, 50)))
             self.can.tag_lower(self.parent.selected_icon_id)
             self.parent.inspector.set_selected(self, 'edge')
 
@@ -104,9 +104,7 @@ class GraphyEdge:
         self.parent.inspector.set_unselected()
 
     def set_label(self, label):
-        self.label = str(label)
-        if '\n' in self.label:
-            print('FUCK EVERYTHING')
+        self.label = str(label).replace(';', '').replace(',', '').replace('\n', '')
 
     def set_weight(self, weight):
         self.weight = weight

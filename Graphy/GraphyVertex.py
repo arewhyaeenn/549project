@@ -89,7 +89,7 @@ class GraphyVertex:
         self.parent.inspector.set_unselected()
 
     def set_label(self, label):
-        self.label = str(label)
+        self.label = str(label).replace(';', '').replace(',', '').replace('\n', '')
 
     def set_default(self):
         self.set_status('Unexplored')
@@ -129,7 +129,7 @@ class GraphyVertex:
         if number_of_pairs == 1:
             x += self.parent.vertex_size // 1.5
             y += self.parent.vertex_size // 1.5
-            return x,y
+            return x, y
         elif number_of_pairs == 2:
             x1 = x - self.parent.vertex_size // 1.5
             y1 = y - self.parent.vertex_size // 1.5

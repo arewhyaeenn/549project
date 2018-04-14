@@ -1,6 +1,5 @@
 # Set weights, parent = GraphyMenuBar
 from tkinter import *
-from tkinter import ttk
 
 
 class GraphyWeightDialog:

@@ -8,12 +8,19 @@ class GraphyMenuBar:
 
     def __init__(self, parent):
 
+        # hierarchy
         self.parent = parent
         self.tk = parent.tk
 
+        # windows
         self.search_window = None
         self.weight_window = None
+
+        # edge weights / euclidean distance
         self.weight_scale = 1
+
+        # path of saved active file
+        self.active_file = None
 
         # Bar
         self.menubar = Menu(self.tk)
@@ -67,6 +74,7 @@ class GraphyMenuBar:
         file = filedialog.asksaveasfile(mode='w', defaultextension=".graphy")
         if file is None:
             return
+        self.active_file = file.name
         vertices = sorted(self.parent.vertices)
         vertex_count = len(vertices)
         lines = []
@@ -111,6 +119,7 @@ class GraphyMenuBar:
             file = open(filedialog.askopenfilename(), 'r')
             if file is None:
                 return
+            self.active_file = file.name
             vertices = list(self.parent.vertices.values())
             for vertex in vertices:
                 vertex.delete()
