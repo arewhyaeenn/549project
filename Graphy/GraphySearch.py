@@ -1,6 +1,7 @@
 # GraphySearch, parent = GraphyRunSearchDialog
 
 from collections import deque
+from math import sqrt
 
 
 class GraphySearch:
@@ -46,18 +47,17 @@ class GraphySearch:
             self.search_step_back = self.simple_back
         elif search_type == "Weighted Breadth-First":
             self.search_setup = self.weighted_bfs_setup
-            self.search_step_forward = self.weighted_bfs_forward
-            self.search_step_back = self.weighted_bfs_back
+            self.search_step_forward = self.complex_forward
+            self.search_step_back = self.complex_back
         elif search_type == "Weighted Depth-First":
             # todo
             self.search_setup = self.simple_bfs_setup
             self.search_step_forward = self.simple_forward
             self.search_step_back = self.simple_back
         elif search_type == "A*":
-            # todo
-            self.search_setup = self.simple_bfs_setup
-            self.search_step_forward = self.simple_forward
-            self.search_step_back = self.simple_back
+            self.search_setup = self.a_star_setup
+            self.search_step_forward = self.complex_forward
+            self.search_step_back = self.complex_back
         else:
             print('invalid search type selected')
 
@@ -201,7 +201,7 @@ class GraphySearch:
             self.traversal_weights[vertex_id] = weight
             frontier.add(vertex_id)
             if vertex_id != end_id:
-                move.append((vertex_id, 'Unexplored', 'Frontier', None, weight))
+                move.append((vertex_id, 'Unexplored', 'Frontier', [], [weight]))
         if move:
             self.forward_stack.append(move)
 
@@ -210,7 +210,7 @@ class GraphySearch:
             frontier_id = min(frontier, key=lambda x: self.traversal_weights[x])
             frontier.remove(frontier_id)
             frontier_weight = self.traversal_weights[frontier_id]
-            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
+            move.append((frontier_id, 'Frontier', 'Explored', [frontier_weight], []))
             neighborhood = self.graphy.vertices[frontier_id].neighbors
             for neighbor_id in neighborhood:
                 weight = self.graphy.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
@@ -222,9 +222,9 @@ class GraphySearch:
                     self.traversal_weights[neighbor_id] = weight
                     if not neighbor_id == end_id:
                         frontier.add(neighbor_id)
-                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
+                        move.append((neighbor_id, "Unexplored", "Frontier", [], [weight]))
                     else:
-                        move.append((neighbor_id, "End", "End", None, weight))
+                        move.append((neighbor_id, "End", "End", [], [weight]))
             if move:
                 self.forward_stack.append(move)
 
@@ -235,7 +235,7 @@ class GraphySearch:
             frontier_weight = self.traversal_weights[frontier_id]
             if frontier_weight >= self.traversal_weights[end_id]:
                 break
-            move.append((frontier_id, 'Frontier', 'Explored', frontier_weight, None))
+            move.append((frontier_id, 'Frontier', 'Explored', [frontier_weight], []))
             neighborhood = self.graphy.vertices[frontier_id].neighbors
             for neighbor_id in neighborhood:
                 weight = self.graphy.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
@@ -247,9 +247,9 @@ class GraphySearch:
                     self.traversal_weights[neighbor_id] = weight
                     if not neighbor_id == end_id:
                         frontier.add(neighbor_id)
-                        move.append((neighbor_id, "Unexplored", "Frontier", None, weight))
+                        move.append((neighbor_id, "Unexplored", "Frontier", [], [weight]))
                     else:
-                        move.append((neighbor_id, "End", "End", None, weight))
+                        move.append((neighbor_id, "End", "End", [], [weight]))
             if move:
                 self.forward_stack.append(move)
 
@@ -264,7 +264,7 @@ class GraphySearch:
             if move:
                 self.forward_stack.append(move)
 
-    def weighted_bfs_forward(self):
+    def complex_forward(self):
         if self.forward_stack:
             move = self.forward_stack.popleft()
             if move[0][0] in self.graphy.vertices:
@@ -277,7 +277,7 @@ class GraphySearch:
                     self.graphy.edges[edge_id].set_status(state2)
             self.back_stack.append(move)
 
-    def weighted_bfs_back(self):
+    def complex_back(self):
         if self.back_stack:
             move = self.back_stack.pop()
             if move[0][0] in self.graphy.vertices:
@@ -289,3 +289,85 @@ class GraphySearch:
                 for (edge_id, state1, state2) in move:
                     self.graphy.edges[edge_id].set_status(state1)
             self.forward_stack.appendleft(move)
+
+    def a_star_setup(self):
+        print('setting up A*')
+        self.predecessors = dict()
+        self.predecessors[self.start_vertex.id] = None
+        self.traversal_weights[self.start_vertex.id] = 0
+        self.forward_stack = deque()
+        self.back_stack = deque()
+        move = []
+        end_id = self.end_vertex.id
+        frontier = set()
+        explored = set()
+
+        scale = self.parent.parent.weight_scale
+        end_coords = self.graphy.can.coords(end_id)
+        for vertex_id in self.graphy.vertices:
+            start_coords = self.graphy.can.coords(vertex_id)
+            self.heuristic_weights[vertex_id] = scale * self.euclidean_distance(*start_coords, *end_coords)
+        print(self.heuristic_weights[end_id])
+
+        explored.add(self.start_vertex.id)
+        for vertex_id in self.start_vertex.neighbors:
+            self.predecessors[vertex_id] = self.start_vertex.id
+            weight = self.start_vertex.neighbors[vertex_id].weight
+            self.traversal_weights[vertex_id] = weight
+            frontier.add(vertex_id)
+            if vertex_id != end_id:
+                move.append((vertex_id, 'Unexplored', 'Frontier', [], [weight, self.heuristic_weights[vertex_id]]))
+        if move:
+            self.forward_stack.append(move)
+
+        while frontier:
+            move = []
+            frontier_id = min(frontier, key=lambda x: self.traversal_weights[x] + self.heuristic_weights[x])
+            explored.add(frontier_id)
+            frontier.remove(frontier_id)
+            if frontier_id == end_id:
+                break
+            frontier_weight = self.traversal_weights[frontier_id]
+            move.append((frontier_id, 'Frontier', 'Explored', [frontier_weight, self.heuristic_weights[frontier_id]], []))
+            neighborhood = self.graphy.vertices[frontier_id].neighbors
+            for neighbor_id in neighborhood:
+                weight = self.graphy.vertices[neighbor_id].neighbors[frontier_id].weight + frontier_weight
+                if neighbor_id not in self.predecessors:
+                    self.predecessors[neighbor_id] = frontier_id
+                    self.traversal_weights[neighbor_id] = weight
+                    frontier.add(neighbor_id)
+                    if not neighbor_id == end_id:
+                        move.append((neighbor_id, "Unexplored", "Frontier", [], [weight, self.heuristic_weights[neighbor_id]]))
+                    else:
+                        move.append((neighbor_id, "End", "End", [], [weight]))
+                elif weight < self.traversal_weights[neighbor_id]:
+                    old_weight = self.traversal_weights[neighbor_id]
+                    heuristic_weight = self.heuristic_weights[neighbor_id]
+                    self.predecessors[neighbor_id] = frontier_id
+                    self.traversal_weights[neighbor_id] = weight
+                    if not neighbor_id == end_id:
+                        if neighbor_id in frontier:
+                            move.append((neighbor_id, "Frontier", "Frontier", [old_weight, heuristic_weight], [weight, heuristic_weight]))
+                        else:
+                            frontier.add(neighbor_id)
+                            move.append((neighbor_id, "Explored", "Frontier", [], [weight, heuristic_weight]))
+                    else:
+                        frontier.add(neighbor_id)
+                        move.append((neighbor_id, "End", "End", [old_weight], [weight]))
+            if move:
+                self.forward_stack.append(move)
+
+        if end_id in self.predecessors:
+            move = []
+            previous_id = self.predecessors[end_id]
+            while previous_id:
+                edge_id = self.graphy.vertices[end_id].neighbors[previous_id].id
+                move.append((edge_id, "Default", "Highlighted"))
+                end_id = previous_id
+                previous_id = self.predecessors[previous_id]
+            if move:
+                self.forward_stack.append(move)
+
+    @staticmethod
+    def euclidean_distance(x1, y1, x2, y2):
+        return sqrt((x1-x2)**2 + (y1-y2)**2)

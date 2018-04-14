@@ -105,6 +105,8 @@ class GraphyEdge:
 
     def set_label(self, label):
         self.label = str(label)
+        if '\n' in self.label:
+            print('FUCK EVERYTHING')
 
     def set_weight(self, weight):
         self.weight = weight

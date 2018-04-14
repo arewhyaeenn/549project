@@ -60,8 +60,9 @@ class GraphyMenuBar:
 
         self.weight_window.get_focus()
 
-    # label ; position ; adjacencies by weight ('None' for no adjacency, only list those after selected) ; adjacencies by label, '__None__' for no adj
+    # label ; position ; adjacencies by weight ; adjacencies by label
     # position and adjacencies are both comma separated
+    # last line is scale (this is where other forgotten metadata should be added as well)
     def save_as(self):
         file = filedialog.asksaveasfile(mode='w', defaultextension=".graphy")
         if file is None:
@@ -93,8 +94,11 @@ class GraphyMenuBar:
             if adj_labels:
                 if adj_labels[-1] == ',':
                     adj_labels = adj_labels[:-1]
-            lines.append(line + ';' + adj_labels)
+            print(str(i)+':  ' + line + ';' + adj_labels)
+            line = line + ';' + adj_labels
+            lines.append(line)
             i += 1
+        lines.append(str(self.weight_scale))
         contents = '\n'.join(lines)
         file.write(contents)
         file.close()
@@ -112,10 +116,14 @@ class GraphyMenuBar:
                 vertex.delete()
             self.parent.reset_canvas()
             lines = file.readlines()
+            file.close()
+            self.weight_scale = float(lines[-1])
+            lines = lines[:-1]
             vertex_ids = []
             adjacencies = []
             adjacency_labels = []
             for line in lines:
+                line = line.replace('\n','')
                 label, position, adjacency, adj_labels = line.split(';')
                 x, y = position.split(',')
                 vertex_id = self.parent.open_file_create_vertex(int(x), int(y), label)

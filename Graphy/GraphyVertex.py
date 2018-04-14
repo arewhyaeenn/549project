@@ -24,7 +24,7 @@ class GraphyVertex:
         self.pos_x = mousex - self.parent.offset_x
         self.pos_y = mousey - self.parent.offset_y
 
-        self.display_text_id = None
+        self.display_text_id = []
 
     def update_position(self, x, y):
         self.can.coords(self.id, x, y)
@@ -32,14 +32,20 @@ class GraphyVertex:
         self.pos_y = y - self.parent.offset_y
         if self.selected:
             self.can.coords(self.parent.selected_icon_id, x, y)
-        if self.display_text_id:
-            self.can.coords(self.display_text_id, *self.get_display_coords())
+        if len(self.display_text_id) == 1:
+            self.can.coords(self.display_text_id[0], *self.get_display_coords(1))
+        elif len(self.display_text_id) == 2:
+            x1, y1, x2, y2 = self.get_display_coords(2)
+            self.can.coords(self.display_text_id[0], x1, y1)
+            self.can.coords(self.display_text_id[1], x2, y2)
         self.update_edge_positions(x, y)
 
     def translate(self, deltax, deltay):
         self.can.move(self.id, deltax, deltay)
-        if self.display_text_id:
-            self.can.move(self.display_text_id, deltax, deltay)
+        for id in self.display_text_id:
+            self.can.move(id, deltax, deltay)
+        if self.selected:
+            self.can.move(self.parent.selected_icon_id, deltax, deltay)
         x, y = self.can.coords(self.id)
         self.update_edge_positions(x, y)
 
@@ -103,19 +109,35 @@ class GraphyVertex:
         else:
             print('Vertex set to unsupported status.')
 
-    def display_weight(self, weight):
+    def display_weight(self, weights):
         if self.display_text_id:
-            self.can.delete(self.display_text_id)
-            self.display_text_id = None
-        if weight:
-            x, y = self.get_display_coords()
-            self.display_text_id = self.can.create_text(x, y, text=round(weight,2))
+            for id in self.display_text_id:
+                self.can.delete(id)
+            self.display_text_id = []
+        if len(weights) == 1:
+            x, y = self.get_display_coords(1)
+            self.display_text_id.append(self.can.create_text(x, y, text=round(weights[0], 2)))
+        elif len(weights) == 2:
+            x1, y1, x2, y2 = self.get_display_coords(2)
+            self.display_text_id.append(self.can.create_text(x1, y1, text=round(weights[0], 2)))
+            self.display_text_id.append(self.can.create_text(x2, y2, text=round(weights[1], 2)))
+        elif len(weights) > 2:
+            print('Unsupported number of display weights')
 
-    def get_display_coords(self):
-        x,y = self.can.coords(self.id)
-        x += self.parent.vertex_size // 1.5
-        y += self.parent.vertex_size // 1.5
-        return x,y
+    def get_display_coords(self, number_of_pairs):
+        x, y = self.can.coords(self.id)
+        if number_of_pairs == 1:
+            x += self.parent.vertex_size // 1.5
+            y += self.parent.vertex_size // 1.5
+            return x,y
+        elif number_of_pairs == 2:
+            x1 = x - self.parent.vertex_size // 1.5
+            y1 = y - self.parent.vertex_size // 1.5
+            x2 = x + self.parent.vertex_size // 1.5
+            y2 = y + self.parent.vertex_size // 1.5
+            return x1, y1, x2, y2
+        else:
+            print('Unsupported number of coordinates requested.')
 
     def delete(self):
         self.set_unselected()
@@ -126,7 +148,7 @@ class GraphyVertex:
             self.neighbors[neighbor_id].delete()
             i += 1
         self.can.delete(self.id)
-        self.display_weight(None)
+        self.display_weight([])
         del self.parent.vertices[self.id]
         del self
 
