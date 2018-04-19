@@ -31,7 +31,7 @@ class GraphyMenuBar:
         self.filemenu.add_command(label="Run Search", command=self.start_search)
         self.filemenu.add_command(label="Set Weights", command=self.set_weights)
         self.filemenu.add_command(label="Save As...", command=self.save_as)  # TODO
-        self.filemenu.add_command(label="Save", command=self.do_nothing)  # TODO
+        self.filemenu.add_command(label="Save", command=self.save)  # TODO
         self.filemenu.add_command(label="Open", command=self.open)  # TODO
         self.filemenu.add_command(label="Quit", command=self.tk.destroy)
         self.menubar.add_cascade(label="File", menu=self.filemenu)
@@ -75,41 +75,18 @@ class GraphyMenuBar:
         if file is None:
             return
         self.active_file = file.name
-        vertices = sorted(self.parent.vertices)
-        vertex_count = len(vertices)
-        lines = []
-        i = 0
-        while i < vertex_count:
-            vertex_id = vertices[i]
-            vertex = self.parent.vertices[vertex_id]
-            line = vertex.label + ';'
-            line += str(vertex.pos_x) + ',' + str(vertex.pos_y) + ';'
-            j = i+1
-            adj_labels = ''
-            while j < vertex_count:
-                other_vertex_id = vertices[j]
-                if other_vertex_id in vertex.neighbors:
-                    edge = vertex.neighbors[other_vertex_id]
-                    line += str(edge.weight) + ','
-                    adj_labels += edge.label + ','
-                else:
-                    line += 'None,'
-                    adj_labels += '__None__,'
-                j += 1
-            if line:
-                if line[-1] == ',':
-                    line = line[:-1]
-            if adj_labels:
-                if adj_labels[-1] == ',':
-                    adj_labels = adj_labels[:-1]
-            print(str(i)+':  ' + line + ';' + adj_labels)
-            line = line + ';' + adj_labels
-            lines.append(line)
-            i += 1
-        lines.append(str(self.weight_scale))
-        contents = '\n'.join(lines)
+        contents = self.string_contents()
         file.write(contents)
         file.close()
+
+    def save(self):
+        if self.active_file:
+            file = open(self.active_file, 'w')
+            contents = self.string_contents()
+            file.write(contents)
+            file.close()
+        else:
+            self.save_as()
 
     def open(self):
         proceed = True
@@ -160,6 +137,42 @@ class GraphyMenuBar:
 
     def delete_search_window(self):
         self.search_window = None
+
+    def string_contents(self):
+        vertices = sorted(self.parent.vertices)
+        vertex_count = len(vertices)
+        lines = []
+        i = 0
+        while i < vertex_count:
+            vertex_id = vertices[i]
+            vertex = self.parent.vertices[vertex_id]
+            line = vertex.label + ';'
+            line += str(vertex.pos_x) + ',' + str(vertex.pos_y) + ';'
+            j = i + 1
+            adj_labels = ''
+            while j < vertex_count:
+                other_vertex_id = vertices[j]
+                if other_vertex_id in vertex.neighbors:
+                    edge = vertex.neighbors[other_vertex_id]
+                    line += str(edge.weight) + ','
+                    adj_labels += edge.label + ','
+                else:
+                    line += 'None,'
+                    adj_labels += '__None__,'
+                j += 1
+            if line:
+                if line[-1] == ',':
+                    line = line[:-1]
+            if adj_labels:
+                if adj_labels[-1] == ',':
+                    adj_labels = adj_labels[:-1]
+            print(str(i) + ':  ' + line + ';' + adj_labels)
+            line = line + ';' + adj_labels
+            lines.append(line)
+            i += 1
+        lines.append(str(self.weight_scale))
+        contents = '\n'.join(lines)
+        return contents
 
     @staticmethod
     def float_or_none(x):
