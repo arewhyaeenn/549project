@@ -166,7 +166,6 @@ class GraphyMenuBar:
             if adj_labels:
                 if adj_labels[-1] == ',':
                     adj_labels = adj_labels[:-1]
-            print(str(i) + ':  ' + line + ';' + adj_labels)
             line = line + ';' + adj_labels
             lines.append(line)
             i += 1
