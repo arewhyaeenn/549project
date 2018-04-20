@@ -28,11 +28,15 @@ class GraphyMenuBar:
 
         # File Menu
         self.filemenu = Menu(self.menubar)
+        self.new_menu = Menu(self.menubar, tearoff=0)
+        self.new_menu.add_command(label="Graph", command=self.start_new_graph)
+        self.new_menu.add_command(label="Neural Net", command=self.start_new_net)
+        self.filemenu.add_cascade(label="New", menu=self.new_menu)
         self.filemenu.add_command(label="Run Search", command=self.start_search)
         self.filemenu.add_command(label="Set Weights", command=self.set_weights)
-        self.filemenu.add_command(label="Save As...", command=self.save_as)  # TODO
-        self.filemenu.add_command(label="Save", command=self.save)  # TODO
-        self.filemenu.add_command(label="Open", command=self.open)  # TODO
+        self.filemenu.add_command(label="Save As...", command=self.save_as)
+        self.filemenu.add_command(label="Save", command=self.save)
+        self.filemenu.add_command(label="Open", command=self.open)
         self.filemenu.add_command(label="Quit", command=self.tk.destroy)
         self.menubar.add_cascade(label="File", menu=self.filemenu)
 
@@ -93,47 +97,62 @@ class GraphyMenuBar:
         if self.parent.vertices:
             proceed = messagebox.askyesno(title="Open File?", message="Any unsaved progress will be lost. Are you sure?")
         if proceed:
-            file = open(filedialog.askopenfilename(), 'r')
-            if file is None:
-                return
-            self.active_file = file.name
-            vertices = list(self.parent.vertices.values())
-            for vertex in vertices:
-                vertex.delete()
-            self.parent.reset_canvas()
-            lines = file.readlines()
-            file.close()
-            self.weight_scale = float(lines[-1])
-            lines = lines[:-1]
-            vertex_ids = []
-            adjacencies = []
-            adjacency_labels = []
-            for line in lines:
-                line = line.replace('\n','')
-                label, position, adjacency, adj_labels = line.split(';')
-                x, y = position.split(',')
-                vertex_id = self.parent.open_file_create_vertex(int(x), int(y), label)
-                vertex_ids.append(vertex_id)
-                adjacency = [self.float_or_none(weight) for weight in adjacency.split(',') if weight]
-                adjacencies.append(adjacency)
-                adj_labels = [self.label_or_none(x) for x in adj_labels.split(',') if x]
-                adjacency_labels.append(adj_labels)
-            i = 0
-            while i < len(vertex_ids):
-                vertex_id = vertex_ids[i]
-                j = 0
-                while j < len(adjacencies[i]):
-                    if adjacencies[i][j]:
-                        other_vertex_id = vertex_ids[i + j + 1]
-                        weight = adjacencies[i][j]
-                        edge_label = adjacency_labels[i][j]
-                        edge = self.parent.open_file_create_edge(vertex_id, other_vertex_id, edge_label, weight)
-                        self.parent.vertices[vertex_id].add_neighbor(other_vertex_id, edge)
-                        self.parent.vertices[other_vertex_id].add_neighbor(vertex_id, edge)
-                        edge.update_endpoint_at_id(vertex_id)
-                        edge.update_endpoint_at_id(other_vertex_id)
-                    j += 1
-                i += 1
+            path = filedialog.askopenfilename()
+            if path[-7:] == ".graphy":
+                self.open_graph(path)
+            if path[-6:] == ".netty":
+                self.open_net(path)
+
+    def open_graph(self, path):
+        file = open(path, 'r')
+        if file is None:
+            return
+        self.set_mode("Graph")
+        self.active_file = file.name
+        self.reset_objects()
+        self.parent.reset_canvas()
+        lines = file.readlines()
+        file.close()
+        self.weight_scale = float(lines[-1])
+        lines = lines[:-1]
+        vertex_ids = []
+        adjacencies = []
+        adjacency_labels = []
+        for line in lines:
+            line = line.replace('\n', '')
+            label, position, adjacency, adj_labels = line.split(';')
+            x, y = position.split(',')
+            vertex_id = self.parent.open_file_create_vertex(int(x), int(y), label)
+            vertex_ids.append(vertex_id)
+            adjacency = [self.float_or_none(weight) for weight in adjacency.split(',') if weight]
+            adjacencies.append(adjacency)
+            adj_labels = [self.label_or_none(x) for x in adj_labels.split(',') if x]
+            adjacency_labels.append(adj_labels)
+        i = 0
+        while i < len(vertex_ids):
+            vertex_id = vertex_ids[i]
+            j = 0
+            while j < len(adjacencies[i]):
+                if adjacencies[i][j]:
+                    other_vertex_id = vertex_ids[i + j + 1]
+                    weight = adjacencies[i][j]
+                    edge_label = adjacency_labels[i][j]
+                    edge = self.parent.open_file_create_edge(vertex_id, other_vertex_id, edge_label, weight)
+                    self.parent.vertices[vertex_id].add_neighbor(other_vertex_id, edge)
+                    self.parent.vertices[other_vertex_id].add_neighbor(vertex_id, edge)
+                    edge.update_endpoint_at_id(vertex_id)
+                    edge.update_endpoint_at_id(other_vertex_id)
+                j += 1
+            i += 1
+
+    def open_net(self, path):
+        # todo
+        print('opening net at '+path)
+
+    def reset_objects(self):
+        vertices = list(self.parent.vertices.values())
+        for vertex in vertices:
+            vertex.delete()
 
     def delete_search_window(self):
         self.search_window = None
@@ -172,6 +191,28 @@ class GraphyMenuBar:
         lines.append(str(self.weight_scale))
         contents = '\n'.join(lines)
         return contents
+
+    def start_new_graph(self):
+        if messagebox.askyesno(title="Open File?", message="Any unsaved progress will be lost. Are you sure?"):
+            self.active_file = None
+            self.reset_objects()
+            self.set_mode("Graph")
+
+    def start_new_net(self):
+        if messagebox.askyesno(title="Open File?", message="Any unsaved progress will be lost. Are you sure?"):
+            self.active_file = None
+            self.reset_objects()
+            self.set_mode("Net")
+
+    def set_mode(self, mode):
+        if mode == "Graph":
+            self.mode = mode
+            self.parent.set_mode(mode)
+        elif mode == "Net":
+            self.mode = mode
+            self.parent.set_mode(mode)
+        else:
+            print("Invalid mode for graphy.")
 
     @staticmethod
     def float_or_none(x):

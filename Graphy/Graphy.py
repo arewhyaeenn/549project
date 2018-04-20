@@ -19,6 +19,9 @@ class Graphy:
         self.tk = Tk()
         self.tk.title("Graphy")
 
+        # graph / net mode
+        self.mode = "Graph"
+
         # frame on left (canvas)
         self.left_frame = Frame(self.tk)
         self.left_frame.pack(side=LEFT)
@@ -79,30 +82,35 @@ class Graphy:
         # vertex images
         self.vertex_size = 20
 
-        # start vertex
+        # start vertex / identity layer
         start_vertex_image = Image.open("images/StartVertex.png")
         start_vertex_image = start_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.start_vertex_image = ImageTk.PhotoImage(start_vertex_image)
+        self.identity_layer_image = self.start_vertex_image
 
-        # unexplored vertex
+        # unexplored vertex / sigmoid layer
         unexplored_vertex_image = Image.open("images/UnexploredVertex.png")
         unexplored_vertex_image = unexplored_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.unexplored_vertex_image = ImageTk.PhotoImage(unexplored_vertex_image)
+        self.sigmoid_layer_image = self.unexplored_vertex_image
 
-        # frontier vertex
+        # frontier vertex / logarithmic layer
         frontier_vertex_image = Image.open("images/FrontierVertex.png")
         frontier_vertex_image = frontier_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.frontier_vertex_image = ImageTk.PhotoImage(frontier_vertex_image)
+        self.logarithmic_layer_image = self.frontier_vertex_image
 
-        # explored vertex
+        # explored vertex / relu layer
         explored_vertex_image = Image.open("images/ExploredVertex.png")
         explored_vertex_image = explored_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.explored_vertex_image = ImageTk.PhotoImage(explored_vertex_image)
+        self.relu_layer_image = self.explored_vertex_image
 
-        # end vertex
+        # end vertex / exponential layer
         end_vertex_image = Image.open("images/EndVertex.png")
         end_vertex_image = end_vertex_image.resize((self.vertex_size, self.vertex_size), Image.ANTIALIAS)
         self.end_vertex_image = ImageTk.PhotoImage(end_vertex_image)
+        self.exponential_layer_image = self.end_vertex_image
 
         # selected vertex image (red outline)
         self.selected_icon_size = int(1.25 * self.vertex_size)
@@ -367,6 +375,11 @@ class Graphy:
     def delete_search(self):
         if self.search:
             self.search = None
+
+    def set_mode(self, mode):
+        self.mode = mode
+        self.legend.set_mode(mode)
+        self.inspector.set_mode(mode)
 
     def quit(self):
         self.isPlaying = False

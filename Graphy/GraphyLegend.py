@@ -34,57 +34,54 @@ class GraphyLegend:
                           bg='white')
         self.can.pack()
 
-        # images
-        '''self.start_vertex_id = None
-        self.unexplored_vertex_id = None
-        self.frontier_vertex_id = None
-        self.explored_vertex_id = None
-        self.end_vertex_id = None
-        self.selected_vertex_id = None
+        self.texts = []
+        self.images = []
+        self.set_mode("Net")
 
-        image_ids = [self.start_vertex_id,
-                     self.unexplored_vertex_id,
-                     self.frontier_vertex_id,
-                     self.explored_vertex_id,
-                     self.end_vertex_id,
-                     self.selected_vertex_id]
+    def set_mode(self, mode):
+        if mode == "Graph":
+            self.images = [self.parent.start_vertex_image,
+                           self.parent.unexplored_vertex_image,
+                           self.parent.frontier_vertex_image,
+                           self.parent.explored_vertex_image,
+                           self.parent.end_vertex_image,
+                           self.parent.selected_vertex_image]
 
-        self.start_label_id = None
-        self.unexplored_label_id = None
-        self.frontier_label_id = None
-        self.explored_label_id = None
-        self.end_label_id = None
-        self.selected_label_id = None
-        
-        label_ids = [self.start_label_id,
-                     self.unexplored_label_id,
-                     self.frontier_label_id,
-                     self.explored_label_id,
-                     self.end_label_id,
-                     self.selected_label_id]'''
+            self.texts = ["Start",
+                          "Unexplored",
+                          "Frontier",
+                          "Explored",
+                          "End",
+                          "Selected"]
 
-        images = [self.parent.start_vertex_image,
-                  self.parent.unexplored_vertex_image,
-                  self.parent.frontier_vertex_image,
-                  self.parent.explored_vertex_image,
-                  self.parent.end_vertex_image,
-                  self.parent.selected_vertex_image]
+        elif mode == "Net":
+            self.texts = ["Identity",
+                          "Sigmoid",
+                          "Logarithmic",
+                          "ReLU",
+                          "Exponential",
+                          "Selected"]
 
-        texts = ['Start',
-                 'Unexplored',
-                 'Frontier',
-                 'Explored',
-                 'End',
-                 'Selected']
+            self.images = [self.parent.identity_layer_image,
+                           self.parent.sigmoid_layer_image,
+                           self.parent.logarithmic_layer_image,
+                           self.parent.relu_layer_image,
+                           self.parent.exponential_layer_image,
+                           self.parent.selected_vertex_image]
+        else:
+            print("This will never actually happen.")
 
+        self.update_display()
+
+    def update_display(self):
+        print('Canvas mode updated.')
+        self.can.delete('all')
         i = 0
-        x_image = int(self.canvas_width/4)
+        x_image = int(self.canvas_width / 4)
         x_text = self.canvas_width - x_image
         y = self.vertex_size
-        while i < len(images):
-            self.can.create_image(x_image, y, image=images[i])
-            self.can.create_text(x_text, y, text=texts[i])
+        while i < len(self.images):
+            self.can.create_image(x_image, y, image=self.images[i])
+            self.can.create_text(x_text, y, text=self.texts[i])
             y += 2 * self.vertex_size
             i += 1
-
-        # right frame (for images)

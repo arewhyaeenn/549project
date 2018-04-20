@@ -96,18 +96,32 @@ class GraphyVertex:
 
     def set_status(self, status):
         self.status = status
-        if status == 'Unexplored':
-            self.can.itemconfig(self.id, image=self.parent.unexplored_vertex_image)
-        elif status == 'Start':
-            self.can.itemconfig(self.id, image=self.parent.start_vertex_image)
-        elif status == 'Frontier':
-            self.can.itemconfig(self.id, image=self.parent.frontier_vertex_image)
-        elif status == 'Explored':
-            self.can.itemconfig(self.id, image=self.parent.explored_vertex_image)
-        elif status == 'End':
-            self.can.itemconfig(self.id, image=self.parent.end_vertex_image)
-        else:
-            print('Vertex set to unsupported status.')
+        if self.parent.mode == "Graph":
+            if status == 'Unexplored':
+                self.can.itemconfig(self.id, image=self.parent.unexplored_vertex_image)
+            elif status == 'Start':
+                self.can.itemconfig(self.id, image=self.parent.start_vertex_image)
+            elif status == 'Frontier':
+                self.can.itemconfig(self.id, image=self.parent.frontier_vertex_image)
+            elif status == 'Explored':
+                self.can.itemconfig(self.id, image=self.parent.explored_vertex_image)
+            elif status == 'End':
+                self.can.itemconfig(self.id, image=self.parent.end_vertex_image)
+            else:
+                print('Vertex set to unsupported status.')
+        elif self.parent.mode == "Net":
+            if status == "Identity":
+                self.can.config(self.id, image=self.parent.identity_layer_image)
+            elif status == "Sigmoid":
+                self.can.config(self.id, image=self.parent.sigmoid_layer_image)
+            elif status == "ReLU":
+                self.can.config(self.id, image=self.parent.relu_layer_image)
+            elif status == "Logarithmic":
+                self.can.config(self.id, image=self.parent.logarithmic_layer_image)
+            elif status == "Exponential":
+                self.can.config(self.id, image=self.parent.exponential_layer_image)
+            else:
+                print('Layer set to unsupported status.')
 
     def display_weight(self, weights):
         if self.display_text_id:
