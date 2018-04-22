@@ -48,7 +48,9 @@ class GraphyInspector:
         self.status_label2 = Label(master=self.status_frame, width=int(self.width/2)-self.padding, text='', bg='white')
         self.status_label2.pack(side='right', padx=self.padding, pady=self.padding)
         self.activation_var = StringVar()
+        self.activation_var.set('')
         self.activation_menu = OptionMenu(self.status_frame, self.activation_var, "Identity", "Sigmoid", "ReLU", "Logarithmic", "Exponential")
+        self.activation_menu.pack(side='right', padx=self.padding, pady=self.padding)
 
         # weight identifier (for edges only)
         self.weight_frame = Frame(master=self.frame, relief='sunken')
@@ -64,13 +66,35 @@ class GraphyInspector:
         # node count identifier (for layers only)
         self.node_frame = Frame(master=self.frame, relief='sunken')
         self.node_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
-        self.node_label = Label(master = self.node_frame, width=int(self.width/2)-self.padding, text="Node Count:")
+        self.node_label = Label(master=self.node_frame, width=int(self.width/2)-self.padding, text="Node Count:")
         self.node_label.pack(side='left', padx=self.padding, pady=self.padding)
         self.node_var = IntVar()
         self.node_entry = Entry(self.node_frame, width=int(self.width / 2) - self.padding, textvariable=self.node_var)
         self.node_entry.pack(side='right', padx=self.padding, pady=self.padding)
         self.node_entry.bind('<Button-1>', self.select_node_text)
         self.node_entry.bind('<Return>', self.drop_widget_focus)
+
+        # bias
+        self.bias_frame = Frame(master=self.frame, relief='sunken')
+        self.bias_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+        self.bias_label = Label(master=self.bias_frame, width=int(self.width/2)-self.padding, text="Bias:")
+        self.bias_label.pack(side='left', padx=self.padding, pady=self.padding)
+        self.bias_var = DoubleVar()
+        self.bias_entry = Entry(self.bias_frame, width=int(self.width / 2) - self.padding, textvariable=self.bias_var)
+        self.bias_entry.pack(side='right', padx=self.padding, pady=self.padding)
+        self.bias_entry.bind('<Button-1>', self.select_bias_text)
+        self.bias_entry.bind('<Return>', self.drop_widget_focus)
+
+        # noise
+        self.noise_frame = Frame(master=self.frame, relief='sunken')
+        self.noise_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+        self.noise_label = Label(master=self.noise_frame, width=int(self.width/2)-self.padding, text="Weight Noise:")
+        self.noise_label.pack(side='left', padx=self.padding, pady=self.padding)
+        self.noise_var = DoubleVar()
+        self.noise_entry = Entry(self.noise_frame, width=int(self.width / 2) - self.padding, textvariable=self.noise_var)
+        self.noise_entry.pack(side='right', padx=self.padding, pady=self.padding)
+        self.noise_entry.bind('<Button-1>', self.select_noise_text)
+        self.noise_entry.bind('<Return>', self.drop_widget_focus)
 
         self.selected = None
         self.selected_type = None
@@ -80,6 +104,8 @@ class GraphyInspector:
         self.weight_var.trace('w', self.set_selected_weight)
         self.activation_var.trace('w', self.set_selected_activation)
         self.node_var.trace('w', self.set_selected_node_count)
+        self.bias_var.trace('w', self.set_selected_bias)
+        self.noise_var.trace('w', self.set_selected_noise)
 
         # mode
         self.mode = parent.mode
@@ -93,7 +119,6 @@ class GraphyInspector:
 
         if self.mode == "Graph":
             if selected_object_type == 'vertex':
-
                 self.type_label2.config(text="Vertex")
                 self.status_label2.config(text=selected_object.status)
 
@@ -104,7 +129,6 @@ class GraphyInspector:
                 self.label_var.set(selected_object.label)
 
             elif selected_object_type == 'edge':
-
                 self.type_label2.config(text="Edge")
 
                 self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
@@ -128,8 +152,22 @@ class GraphyInspector:
                 self.node_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
 
                 self.label_var.set(selected_object.label)
-                self.status_var.set(selected_object.status)
                 self.node_var.set(selected_object.node_count)
+                self.activation_var.set(selected_object.status)
+
+            elif selected_object_type == 'edge': #  type, label, default weight, bias, noise
+                self.type_label2.config(text="Weights")
+
+                self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.label_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.weight_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.bias_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.noise_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+
+                self.label_var.set(selected_object.label)
+                self.weight_var.set(selected_object.weight)
+                self.bias_var.set(selected_object.bias)
+                self.noise_var.set(selected_object.noise)
 
         else:
             print('This will never happen.')
@@ -141,6 +179,8 @@ class GraphyInspector:
         self.status_frame.pack_forget()
         self.weight_frame.pack_forget()
         self.node_frame.pack_forget()
+        self.bias_frame.pack_forget()
+        self.noise_frame.pack_forget()
         self.selected = None
         self.selected_type = None
 
@@ -157,6 +197,12 @@ class GraphyInspector:
 
     def set_selected_node_count(self, *args):
         self.selected.set_node_count(self.node_var.get())
+
+    def set_selected_bias(self, *args):
+        self.selected.set_bias(self.bias_var.get())
+
+    def set_selected_noise(self, *args):
+        self.selected.set_noise(self.noise_var.get())
 
     def update(self):
         if self.selected:
@@ -188,6 +234,20 @@ class GraphyInspector:
             self.node_entry.select_range(0, 'end')
             self.node_entry.icursor(0)
 
+    def select_bias_text(self, event):
+        if event:
+            self.parent.tk.after(50, self.select_bias_text, False)
+        else:
+            self.bias_entry.select_range(0, 'end')
+            self.bias_entry.icursor(0)
+
+    def select_noise_text(self, event):
+        if event:
+            self.parent.tk.after(50, self.select_noise_text, False)
+        else:
+            self.noise_entry.select_range(0, 'end')
+            self.noise_entry.icursor(0)
+
     def drop_widget_focus(self, event):
         self.frame.focus()
 
@@ -196,9 +256,13 @@ class GraphyInspector:
             self.mode = mode
             self.weight_label.config(text="Weight:")
             self.status_label1.config(text="Status:")
+            self.activation_menu.pack_forget()
+            self.status_label2.pack(side='right', padx=self.padding, pady=self.padding)
         elif mode == "Net":
             self.mode = mode
-            self.weight_label.config(text="Initial Weight:")
-            self.status_label_1.config(text="Activation:")
+            self.weight_label.config(text="Default Weights:")
+            self.status_label1.config(text="Activation:")
+            self.status_label2.pack_forget()
+            self.activation_menu.pack(side='right', padx=self.padding, pady=self.padding)
         else:
             print("This will never happen.")

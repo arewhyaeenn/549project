@@ -30,7 +30,7 @@ class GraphyVertexSpawnButton:
                                                     parent.canvas_height - self.padding,
                                                     anchor=SW,
                                                     window=self.button)
-        self.button.bind("<Button-1>", self.parent.create_unexplored_vertex)
+        self.button.bind("<Button-1>", self.parent.create_vertex)
 
     def resize(self):
         self.can.coords(self.button_window,

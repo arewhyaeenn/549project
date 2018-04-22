@@ -19,8 +19,9 @@ class Graphy:
         self.tk = Tk()
         self.tk.title("Graphy")
 
-        # graph / net mode
+        # Graph or Net, directed or undirected edges
         self.mode = "Graph"
+        self.directed = False
 
         # frame on left (canvas)
         self.left_frame = Frame(self.tk)
@@ -61,6 +62,7 @@ class Graphy:
         self.edges = dict()  # edge.id --> GraphyEdge object
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
+        self.pointers = dict()  # pointer id --> corresponding edge id
 
         # GraphySearch
         self.search = None
@@ -150,6 +152,7 @@ class Graphy:
         self.can.bind("<Motion>", self.motion)  # on mouse movement over canvas
         self.can.bind("<Button-1>", self.click)  # left click to create
         self.can.bind("<Button-2>", self.mclick)  # middle click to select
+        self.can.bind("<Control-Button-1>", self.mclick)  # for use with a touchpad
         self.can.bind("<Button-3>", self.rclick)  # right click to move
         self.can.bind("<ButtonRelease-3>", self.rclick_release)  # let go of right click
         self.tk.bind("<Delete>", self.delete_selected)
@@ -273,11 +276,14 @@ class Graphy:
                     self.selected.set_unselected()
                 self.selected = self.vertices[item]
                 self.selected.set_selected()
-            elif item in self.edges:
-                if self.selected and self.selected.id != item:
-                    self.selected.set_unselected()
-                self.selected = self.edges[item]
-                self.selected.set_selected()
+            else:
+                if item in self.pointers:
+                    item = self.pointers[item]
+                if item in self.edges:
+                    if self.selected and self.selected.id != item:
+                        self.selected.set_unselected()
+                    self.selected = self.edges[item]
+                    self.selected.set_selected()
 
     def rclick(self, event):
         if not (self.held_edge or self.held_vertex):
@@ -309,25 +315,31 @@ class Graphy:
     def rclick_release(self, event):
         self.is_moving_canvas = False
 
-    def create_unexplored_vertex(self, event):
+    def create_vertex(self, event):
+        if self.mode == "Graph":
+            status = "Unexplored"
+            image = self.unexplored_vertex_image
+        else:
+            status = "Identity"
+            image = self.identity_layer_image
         if not self.held_vertex:
             self.held_vertex = GraphyVertex(self,
-                                            self.unexplored_vertex_image,
-                                            "Unexplored",
+                                            image,
+                                            status,
                                             self.mousex,
                                             self.mousey)
             self.vertices[self.held_vertex.id] = self.held_vertex
             self.vertex_count += 1
             self.held_vertex.set_label(self.vertex_count)
 
-    def open_file_create_vertex(self, x, y, label):
+    def open_graph_create_vertex(self, x, y, label):
         new_vertex = GraphyVertex(self, self.unexplored_vertex_image, "Unexplored", x, y)
         self.vertices[new_vertex.id] = new_vertex
         new_vertex.set_label(label)
         self.vertex_count += 1
         return new_vertex.id
 
-    def open_file_create_edge(self, vertex_id_1, vertex_id_2, label, weight):
+    def open_graph_create_edge(self, vertex_id_1, vertex_id_2, label, weight):
         new_edge = GraphyEdge(self, None, None, start_vertex_id=vertex_id_1, end_vertex_id=vertex_id_2, label=label, weight=weight)
         return new_edge
 

@@ -20,6 +20,9 @@ class GraphyVertex:
         self.selected = False
         self.label = ''
 
+        # net utilities
+        self.node_count = 1
+
         # global position without canvas offset
         self.pos_x = mousex - self.parent.offset_x
         self.pos_y = mousey - self.parent.offset_y
@@ -108,20 +111,20 @@ class GraphyVertex:
             elif status == 'End':
                 self.can.itemconfig(self.id, image=self.parent.end_vertex_image)
             else:
-                print('Vertex set to unsupported status.')
+                print('Vertex set to unsupported status: '+ status + '.')
         elif self.parent.mode == "Net":
             if status == "Identity":
-                self.can.config(self.id, image=self.parent.identity_layer_image)
+                self.can.itemconfig(self.id, image=self.parent.identity_layer_image)
             elif status == "Sigmoid":
-                self.can.config(self.id, image=self.parent.sigmoid_layer_image)
+                self.can.itemconfig(self.id, image=self.parent.sigmoid_layer_image)
             elif status == "ReLU":
-                self.can.config(self.id, image=self.parent.relu_layer_image)
+                self.can.itemconfig(self.id, image=self.parent.relu_layer_image)
             elif status == "Logarithmic":
-                self.can.config(self.id, image=self.parent.logarithmic_layer_image)
+                self.can.itemconfig(self.id, image=self.parent.logarithmic_layer_image)
             elif status == "Exponential":
-                self.can.config(self.id, image=self.parent.exponential_layer_image)
+                self.can.itemconfig(self.id, image=self.parent.exponential_layer_image)
             else:
-                print('Layer set to unsupported status.')
+                print('Layer set to unsupported status: '+ status + '.')
 
     def display_weight(self, weights):
         if self.display_text_id:
@@ -170,3 +173,6 @@ class GraphyVertex:
         edge = self.neighbors[neighbor_id]
         del self.neighbors[neighbor_id]
         self.edges.remove(edge)
+
+    def set_node_count(self, nodes):
+        self.node_count = nodes

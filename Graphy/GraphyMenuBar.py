@@ -11,6 +11,7 @@ class GraphyMenuBar:
         # hierarchy
         self.parent = parent
         self.tk = parent.tk
+        self.mode = self.parent.mode
 
         # windows
         self.search_window = None
@@ -122,7 +123,7 @@ class GraphyMenuBar:
             line = line.replace('\n', '')
             label, position, adjacency, adj_labels = line.split(';')
             x, y = position.split(',')
-            vertex_id = self.parent.open_file_create_vertex(int(x), int(y), label)
+            vertex_id = self.parent.open_graph_create_vertex(int(x), int(y), label)
             vertex_ids.append(vertex_id)
             adjacency = [self.float_or_none(weight) for weight in adjacency.split(',') if weight]
             adjacencies.append(adjacency)
@@ -137,7 +138,7 @@ class GraphyMenuBar:
                     other_vertex_id = vertex_ids[i + j + 1]
                     weight = adjacencies[i][j]
                     edge_label = adjacency_labels[i][j]
-                    edge = self.parent.open_file_create_edge(vertex_id, other_vertex_id, edge_label, weight)
+                    edge = self.parent.open_graph_create_edge(vertex_id, other_vertex_id, edge_label, weight)
                     self.parent.vertices[vertex_id].add_neighbor(other_vertex_id, edge)
                     self.parent.vertices[other_vertex_id].add_neighbor(vertex_id, edge)
                     edge.update_endpoint_at_id(vertex_id)
@@ -207,9 +208,11 @@ class GraphyMenuBar:
     def set_mode(self, mode):
         if mode == "Graph":
             self.mode = mode
+            self.parent.directed = False
             self.parent.set_mode(mode)
         elif mode == "Net":
             self.mode = mode
+            self.parent.directed = True
             self.parent.set_mode(mode)
         else:
             print("Invalid mode for graphy.")
