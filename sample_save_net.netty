@@ -1,0 +1,4 @@
+I;Identity;153,262;4;0.0;0;10;None,1.0|0.1|to H1,None,None
+H1;Sigmoid;411,219;8;1.0;0;10;None,None,2.0|0.2|to H2,None
+H2;Sigmoid;556,219;8;2.0;0;10;None,None,None,3.0|0.3|to O
+O;Identity;625,339;4;3.0;0;10;None,None,None,None

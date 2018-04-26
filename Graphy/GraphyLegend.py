@@ -36,7 +36,7 @@ class GraphyLegend:
 
         self.texts = []
         self.images = []
-        self.set_mode("Net")
+        self.set_mode(self.parent.mode)
 
     def set_mode(self, mode):
         if mode == "Graph":

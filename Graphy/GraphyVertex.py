@@ -22,6 +22,11 @@ class GraphyVertex:
 
         # net utilities
         self.node_count = 1
+        self.is_input_layer = False
+        self.is_output_layer = False
+        self.leakiness = 0
+        self.bound = 10
+        self.bias = 0
 
         # global position without canvas offset
         self.pos_x = mousex - self.parent.offset_x
@@ -176,3 +181,32 @@ class GraphyVertex:
 
     def set_node_count(self, nodes):
         self.node_count = nodes
+
+    def set_input_layer(self, the_bool):
+        if the_bool:
+            if self.parent.input_layer:
+                self.parent.input_layer.set_input_layer(False)
+            self.parent.input_layer = self
+        else:
+            if self.is_input_layer:
+                self.parent.input_layer = None
+        self.is_input_layer = the_bool
+
+    def set_output_layer(self, the_bool):
+        if the_bool:
+            if self.parent.output_layer:
+                self.parent.output_layer.set_output_layer(False)
+            self.parent.output_layer = self
+        else:
+            if self.is_output_layer:
+                self.parent.output_layer = None
+        self.is_output_layer = the_bool
+
+    def set_leakiness(self, leakiness):
+        self.leakiness = leakiness
+
+    def set_bound(self, bound):
+        self.bound = bound
+
+    def set_bias(self, bias):
+        self.bias = bias

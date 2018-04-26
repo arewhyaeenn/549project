@@ -56,13 +56,15 @@ class Graphy:
         # top menu
         self.menubar = GraphyMenuBar(self)
 
-        # graph utilities
+        # graph and net utilities
         self.vertices = dict()  # vertex.id --> GraphyVertex object
         self.vertex_count = 0
         self.edges = dict()  # edge.id --> GraphyEdge object
         self.edge_count = 0
         self.vertex_spawn = GraphyVertexSpawnButton(self)
         self.pointers = dict()  # pointer id --> corresponding edge id
+        self.input_layer = None
+        self.output_layer = None
 
         # GraphySearch
         self.search = None
@@ -341,6 +343,21 @@ class Graphy:
 
     def open_graph_create_edge(self, vertex_id_1, vertex_id_2, label, weight):
         new_edge = GraphyEdge(self, None, None, start_vertex_id=vertex_id_1, end_vertex_id=vertex_id_2, label=label, weight=weight)
+        return new_edge
+
+    def open_net_create_vertex(self, x, y, label, activation, node_count, bias, leakiness, bound):
+        new_vertex = GraphyVertex(self, self.identity_layer_image, "Identity", x, y)
+        self.vertices[new_vertex.id] = new_vertex
+        new_vertex.set_label(label)
+        new_vertex.set_status(activation)
+        new_vertex.set_node_count(node_count)
+        new_vertex.set_bias(bias)
+        new_vertex.set_leakiness(leakiness)
+        new_vertex.set_bound(bound)
+        return new_vertex.id
+
+    def open_net_create_edge(self, vertex_id_1, vertex_id_2, label, weight, noise):
+        new_edge = GraphyEdge(self, None, None, start_vertex_id=vertex_id_1, end_vertex_id=vertex_id_2, label=label, weight=weight, noise=noise)
         return new_edge
 
     def set_search_vertex(self, vertex):

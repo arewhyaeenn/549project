@@ -2,6 +2,7 @@
 from tkinter import Menu, filedialog, messagebox
 from GraphyRunSearchDialog import GraphyRunSearchDialog
 from GraphyWeightDialog import GraphyWeightDialog
+from collections import deque
 
 
 class GraphyMenuBar:
@@ -76,7 +77,17 @@ class GraphyMenuBar:
     # position and adjacencies are both comma separated
     # last line is scale (this is where other forgotten metadata should be added as well)
     def save_as(self):
-        file = filedialog.asksaveasfile(mode='w', defaultextension=".graphy")
+        if self.mode == "Graph":
+            extension = ".graphy"
+        elif self.mode == "Net":
+            if not (self.parent.input_layer and self.parent.output_layer):
+                messagebox.showerror(title="Invalid Input or Output", message="Neural net must have both an input and output layer to be saved.")
+                return
+            extension = ".netty"
+        else:
+            messagebox.showerror(title="Invalid Mode", message="Cannot save object of type \"self.mode\"")
+            return
+        file = filedialog.asksaveasfile(mode='w', defaultextension=extension)
         if file is None:
             return
         self.active_file = file.name
@@ -101,8 +112,10 @@ class GraphyMenuBar:
             path = filedialog.askopenfilename()
             if path[-7:] == ".graphy":
                 self.open_graph(path)
-            if path[-6:] == ".netty":
+            elif path[-6:] == ".netty":
                 self.open_net(path)
+            else:
+                messagebox.showerror(title="Invalid File", message="Cannot open file \"" + path + "\"")
 
     def open_graph(self, path):
         file = open(path, 'r')
@@ -127,7 +140,7 @@ class GraphyMenuBar:
             vertex_ids.append(vertex_id)
             adjacency = [self.float_or_none(weight) for weight in adjacency.split(',') if weight]
             adjacencies.append(adjacency)
-            adj_labels = [self.label_or_none(x) for x in adj_labels.split(',') if x]
+            adj_labels = [self.label_or_none(a) for a in adj_labels.split(',') if a]
             adjacency_labels.append(adj_labels)
         i = 0
         while i < len(vertex_ids):
@@ -147,8 +160,50 @@ class GraphyMenuBar:
             i += 1
 
     def open_net(self, path):
-        # todo
-        print('opening net at '+path)
+        file = open(path, 'r')
+        if file is None:
+            return
+        self.set_mode("Net")
+        self.active_file = file.name
+        self.reset_objects()
+        self.parent.reset_canvas()
+        lines = file.readlines()
+        file.close()
+        vertex_ids = []
+        adjacencies = []
+        for line in lines:
+            line = line.replace('\n', '')
+            label, activation, position, node_count, bias, leakiness, bound, outgoing = line.split(';')
+            x, y = position.split(',')
+            vertex_id = self.parent.open_net_create_vertex(int(x), int(y), label, activation, int(node_count), float(bias), float(leakiness), float(bound))
+            vertex_ids.append(vertex_id)
+            adjacency = []
+            for triple in outgoing.split(','):
+                if triple == "None":
+                    adjacency.append(None)
+                elif triple:
+                    weight, noise, label = triple.split('|')
+                    weight = float(weight)
+                    noise = float(noise)
+                    adjacency.append((weight, noise, label))
+            adjacencies.append(adjacency)
+        self.parent.vertices[vertex_ids[0]].set_input_layer(True)
+        self.parent.vertices[vertex_ids[-1]].set_output_layer(True)
+        i = 0
+        while i < len(vertex_ids):
+            vertex_id = vertex_ids[i]
+            j = 0
+            while j < len(vertex_ids):
+                if adjacencies[i][j]:
+                    other_vertex_id = vertex_ids[j]
+                    weight, noise, label = adjacencies[i][j]
+                    edge = self.parent.open_net_create_edge(vertex_id, other_vertex_id, label, weight, noise)
+                    self.parent.vertices[vertex_id].add_neighbor(other_vertex_id, edge)
+                    self.parent.vertices[other_vertex_id].add_neighbor(vertex_id, edge)
+                    edge.update_endpoint_at_id(vertex_id)
+                    edge.update_endpoint_at_id(other_vertex_id)
+                j += 1
+            i += 1
 
     def reset_objects(self):
         vertices = list(self.parent.vertices.values())
@@ -159,6 +214,12 @@ class GraphyMenuBar:
         self.search_window = None
 
     def string_contents(self):
+        if self.mode == "Graph":
+            return self.graph_string_contents()
+        elif self.mode == "Net":
+            return self.net_string_contents()
+
+    def graph_string_contents(self):
         vertices = sorted(self.parent.vertices)
         vertex_count = len(vertices)
         lines = []
@@ -190,6 +251,57 @@ class GraphyMenuBar:
             lines.append(line)
             i += 1
         lines.append(str(self.weight_scale))
+        contents = '\n'.join(lines)
+        return contents
+
+    # line 1 is input layer
+    # last line is output layer
+    # should drop any layers which aren't reachable from start
+    # label ; activation ; position ; node count ; bias ; leakiness ; bound ; outgoing connections (weight|noise|label,)
+    def net_string_contents(self):
+        vertices = []
+        completed_edges = set()
+        end_id = self.parent.output_layer.id
+        queue = deque()
+        queue.append(self.parent.input_layer.id)
+        while queue:
+            id = queue.pop()
+            if id != end_id:
+                vertices.append(id)
+            for neighbor_id in self.parent.vertices[id].neighbors:
+                if neighbor_id not in vertices and neighbor_id != end_id:
+                    queue.append(neighbor_id)
+        vertices.append(end_id)
+
+        lines = []
+        i = 0
+        while i < len(vertices):
+            id = vertices[i]
+            vertex = self.parent.vertices[id]
+            line = vertex.label + ';'
+            line += vertex.status + ';'
+            line += str(vertex.pos_x) + ',' + str(vertex.pos_y) + ';'
+            line += str(vertex.node_count) + ';'
+            line += str(vertex.bias) + ';'
+            line += str(vertex.leakiness) + ';'
+            line += str(vertex.bound) + ';'
+            j = 0
+            while j < len(vertices):
+                other_id = vertices[j]
+                if other_id in vertex.neighbors:
+                    edge = vertex.neighbors[other_id]
+                    if edge.id_is_start_vertex(id):
+                        line += str(edge.weight) + '|' + str(edge.noise) + '|' + edge.label + ','
+                    else:
+                        line += 'None,'
+                else:
+                    line += 'None,'
+                j += 1
+            if line:
+                if line[-1] == ',':
+                    line = line[:-1]
+            lines.append(line)
+            i += 1
         contents = '\n'.join(lines)
         return contents
 

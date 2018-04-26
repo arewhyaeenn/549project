@@ -4,7 +4,7 @@ from math import sqrt
 
 class GraphyEdge:
 
-    def __init__(self, parent, vertex, event, start_vertex_id=None, end_vertex_id=None, label='', weight=None, bias=0, noise=0.1):
+    def __init__(self, parent, vertex, event, start_vertex_id=None, end_vertex_id=None, label='', weight=None, noise=0.1):
 
         self.width = 1
         self.pointer_offset = 3
@@ -37,7 +37,6 @@ class GraphyEdge:
             else:
                 weight = 0
         self.weight = weight
-        self.bias = bias
         self.noise = noise
 
     def update_endpoint_at_id(self, vertex_id, x=None, y=None):
@@ -167,8 +166,6 @@ class GraphyEdge:
 
     def set_weight(self, weight):
         self.weight = weight
-        if self.selected:
-            self.parent.inspector.update()
 
     def set_status(self, state):
         if state == "Default":
@@ -177,9 +174,6 @@ class GraphyEdge:
             self.can.itemconfig(self.id, fill='green', width=6)
         else:
             print('edge set to invalid state')
-
-    def set_bias(self, bias):
-        self.bias = bias
 
     def set_noise(self, noise):
         self.noise = noise
@@ -193,6 +187,9 @@ class GraphyEdge:
 
     def get_euclidean_distance(self):
         return self.euclidean_distance(*self.coords)
+
+    def id_is_start_vertex(self, id):
+        return self.vertices[id] == 0
 
     @staticmethod
     def euclidean_distance(x1, y1, x2, y2):
