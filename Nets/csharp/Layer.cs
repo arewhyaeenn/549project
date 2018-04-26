@@ -15,6 +15,7 @@ public class Layer
     public float[] deltas;
 
     private float initial_weight;
+    private float weight_noise;
     public List<float[,]> weights = new List<float[,]>();
 
     public List<Layer> incoming_layers = new List<Layer>();
@@ -30,7 +31,7 @@ public class Layer
 
     public int propagation_key = -1;
 
-    public Layer(NeuralNet master, string activation, int node_count, float leakiness = 0f, float bound = 10f, float initial_weight = 0f, float initial_bias = 0f)
+    public Layer(NeuralNet master, string activation, int node_count, float leakiness = 0f, float bound = 10f, float initial_bias = 0f, float initial_weight = 0f, float weight_noise = 0.1f)
     {
         this.master = master;
 
@@ -41,6 +42,7 @@ public class Layer
         deltas = new float[node_count];
 
         this.initial_weight = initial_weight;
+        this.weight_noise = weight_noise;
 
         biases = new float[node_count];
         if (initial_bias != 0f)
@@ -197,6 +199,16 @@ public class Layer
         }
     }
 
+    public void correct_bias()
+    {
+        int i = 0;
+        while (i < node_count)
+        {
+            biases[i] += master.learning_rate * deltas[i];
+            i++;
+        }
+    }
+
     public void set_inputs(float[] inputs)
     {
         if (inputs.Length == node_count)
@@ -260,6 +272,56 @@ public class Layer
                 while (j < layer.node_count)
                 {
                     new_weights[i, j] = initial_weight;
+                    j++;
+                }
+                i++;
+            }
+        }
+        if (weight_noise != 0f)
+        {
+            int i = 0;
+            while (i < node_count)
+            {
+                int j = 0;
+                while (j < layer.node_count)
+                {
+                    new_weights[i, j] += UnityEngine.Random.Range(-weight_noise, weight_noise);
+                    j++;
+                }
+                i++;
+            }
+        }
+        weights.Add(new_weights);
+    }
+
+    public void add_output_layer(Layer layer, float mean_weight, float noise)
+    {
+        layer.add_input_layer(this, outgoing_layers.Count);
+        outgoing_layers.Add(layer);
+        float[,] new_weights = new float[node_count, layer.node_count];
+        if (mean_weight != 0f)
+        {
+            int i = 0;
+            while (i < node_count)
+            {
+                int j = 0;
+                while (j < layer.node_count)
+                {
+                    new_weights[i, j] = mean_weight;
+                    j++;
+                }
+                i++;
+            }
+        }
+        if (noise != 0f)
+        {
+            int i = 0;
+            while (i < node_count)
+            {
+                int j = 0;
+                while (j < layer.node_count)
+                {
+                    new_weights[i, j] += UnityEngine.Random.Range(-noise, noise);
                     j++;
                 }
                 i++;

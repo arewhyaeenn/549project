@@ -74,6 +74,17 @@ class GraphyInspector:
         self.node_entry.bind('<Button-1>', self.select_node_text)
         self.node_entry.bind('<Return>', self.drop_widget_focus)
 
+        # leakiness
+        self.leakiness_frame = Frame(master=self.frame, relief='sunken')
+        self.leakiness_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+        self.leakiness_label = Label(master=self.leakiness_frame, width=int(self.width/2)-self.padding, text="Leakiness")
+        self.leakiness_label.pack(side='left', padx=self.padding, pady=self.padding)
+        self.leakiness_var = DoubleVar()
+        self.leakiness_entry = Entry(self.leakiness_frame, width=int(self.width / 2) - self.padding, textvariable=self.leakiness_var)
+        self.leakiness_entry.pack(side='right', padx=self.padding, pady=self.padding)
+        self.leakiness_entry.bind('<Button-1>', self.select_leakiness_text)
+        self.leakiness_entry.bind('<Return>', self.drop_widget_focus)
+
         # bias
         self.bias_frame = Frame(master=self.frame, relief='sunken')
         self.bias_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
@@ -83,6 +94,17 @@ class GraphyInspector:
         self.bias_entry = Entry(self.bias_frame, width=int(self.width / 2) - self.padding, textvariable=self.bias_var)
         self.bias_entry.pack(side='right', padx=self.padding, pady=self.padding)
         self.bias_entry.bind('<Button-1>', self.select_bias_text)
+        self.bias_entry.bind('<Return>', self.drop_widget_focus)
+
+        # output bound
+        self.bound_frame = Frame(master=self.frame, relief='sunken')
+        self.bound_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+        self.bound_label = Label(master=self.bound_frame, width=int(self.width/2)-self.padding, text="Output Bound:")
+        self.bound_label.pack(side='left', padx=self.padding, pady=self.padding)
+        self.bound_var = DoubleVar()
+        self.bound_entry = Entry(self.bound_frame, width=int(self.width / 2) - self.padding, textvariable=self.bound_var)
+        self.bound_entry.pack(side='right', padx=self.padding, pady=self.padding)
+        self.bound_entry.bind('<Button-1>', self.select_bound_text)
         self.bias_entry.bind('<Return>', self.drop_widget_focus)
 
         # noise
@@ -99,8 +121,6 @@ class GraphyInspector:
         # input / output
         self.input_output_frame = Frame(master=self.frame, relief='sunken')
         self.input_output_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
-        #self.input_label = Label(master=self.input_output_frame, width=int(self.width/2)-self.padding, text="Input Layer:")
-        #self.output_label = Label(master=self.input_output_frame, width=int(self.width/2)-self.padding, text="Output Layer:")
         self.input_var = BooleanVar()
         self.input_var.set(False)
         self.output_var = BooleanVar()
@@ -108,7 +128,7 @@ class GraphyInspector:
         self.input_toggle = Checkbutton(master=self.input_output_frame, text="Is Input", variable=self.input_var)
         self.output_toggle = Checkbutton(master=self.input_output_frame, text="Is Output", variable=self.output_var)
         self.input_toggle.pack(side='left', padx=self.padding, pady=self.padding)
-        self.output_toggle.pack(side='right', padx=self.padding, pady=self.padding)
+        self.output_toggle.pack(side='left', padx=self.padding, pady=self.padding)
 
         self.selected = None
         self.selected_type = None
@@ -117,8 +137,10 @@ class GraphyInspector:
         self.label_var.trace('w', self.set_selected_label)
         self.weight_var.trace('w', self.set_selected_weight)
         self.activation_var.trace('w', self.set_selected_activation)
+        self.leakiness_var.trace('w', self.set_selected_leakiness)
         self.node_var.trace('w', self.set_selected_node_count)
         self.bias_var.trace('w', self.set_selected_bias)
+        self.bound_var.trace('w', self.set_selected_bound)
         self.noise_var.trace('w', self.set_selected_noise)
         self.input_var.trace('w', self.set_input)
         self.output_var.trace('w', self.set_output)
@@ -166,17 +188,21 @@ class GraphyInspector:
                 self.label_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
                 self.status_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
                 self.node_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.leakiness_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
                 self.bias_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
+                self.bound_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
                 self.input_output_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
 
                 self.label_var.set(selected_object.label)
                 self.node_var.set(selected_object.node_count)
                 self.activation_var.set(selected_object.status)
+                self.leakiness_var.set(selected_object.leakiness)
                 self.bias_var.set(selected_object.bias)
+                self.bound_var.set(selected_object.bound)
                 self.input_var.set(selected_object.is_input_layer)
                 self.output_var.set(selected_object.is_output_layer)
 
-            elif selected_object_type == 'edge': #  type, label, default weight, bias, noise
+            elif selected_object_type == 'edge':
                 self.type_label2.config(text="Weights")
 
                 self.type_frame.pack(side='top', fill='x', pady=self.padding, padx=self.padding)
@@ -199,8 +225,10 @@ class GraphyInspector:
         self.weight_frame.pack_forget()
         self.node_frame.pack_forget()
         self.bias_frame.pack_forget()
+        self.bound_frame.pack_forget()
         self.noise_frame.pack_forget()
         self.input_output_frame.pack_forget()
+        self.leakiness_frame.pack_forget()
         self.selected = None
         self.selected_type = None
 
@@ -221,6 +249,9 @@ class GraphyInspector:
     def set_selected_bias(self, *args):
         self.selected.set_bias(self.bias_var.get())
 
+    def set_selected_bound(self, *args):
+        self.selected.set_bound(self.bound_var.get())
+
     def set_selected_noise(self, *args):
         self.selected.set_noise(self.noise_var.get())
 
@@ -229,6 +260,9 @@ class GraphyInspector:
 
     def set_output(self, *args):
         self.selected.set_output_layer(self.output_var.get())
+
+    def set_selected_leakiness(self, *args):
+        self.selected.set_leakiness(self.leakiness_var.get())
 
     def update(self):
         if self.selected:
@@ -273,6 +307,20 @@ class GraphyInspector:
         else:
             self.noise_entry.select_range(0, 'end')
             self.noise_entry.icursor(0)
+
+    def select_bound_text(self, event):
+        if event:
+            self.parent.tk.after(50, self.select_bound_text, False)
+        else:
+            self.bound_entry.select_range(0, 'end')
+            self.bound_entry.icursor(0)
+
+    def select_leakiness_text(self, event):
+        if event:
+            self.parent.tk.after(50, self.select_leakiness_text, False)
+        else:
+            self.leakiness_entry.select_range(0, 'end')
+            self.leakiness_entry.icursor(0)
 
     def drop_widget_focus(self, event):
         self.frame.focus()

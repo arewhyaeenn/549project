@@ -29,7 +29,7 @@ class Graphy:
         self.can = Canvas(self.left_frame)
 
         # frame on right (inspector, legend, ...)
-        self.right_frame_width = 30
+        self.right_frame_width = 40
         self.right_frame_padding = 4
         self.right_frame = Frame(self.tk)
         self.right_frame.pack(side=RIGHT, fill='both')
@@ -37,7 +37,7 @@ class Graphy:
 
         # canvas setup
         self.canvas_width = 1000
-        self.canvas_height = 500
+        self.canvas_height = 600
         self.can.config(width=self.canvas_width,
                         height=self.canvas_height,
                         background='white',

@@ -13,17 +13,55 @@ public class NeuralNet
 
     private int propagation_key;
 
-    // TODO
     public NeuralNet(string file_path)
     {
-        propagation_key = 0;
+        List<String[]> adjacencies = new List<String[]>();
+        string[] lines = System.IO.File.ReadAllLines(file_path);
+        int i = 0;
+        while (i < lines.Length)
+        {
+            string[] line = lines[i].Split(';');
+            string activation = line[1];
+            int node_count = Int32.Parse(line[3]);
+            float bias = float.Parse(line[4]);
+            float leakiness = float.Parse(line[5]);
+            float bound = float.Parse(line[6]);
+            adjacencies.Add(line[7].Split(','));
+            Layer new_layer = new Layer(this, activation, node_count, leakiness, bound, bias);
+            Debug.Log(string.Format("Creating new layer {0} with activation {1}, node_count {2}, leakiness {3}, bound {4}, and bias{5}", i, activation, node_count, leakiness, bound, bias));
+            layers.Add(new_layer);
+            i++;
+        }
+        input_layer = layers[0];
+        output_layer = layers[i - 1];
+
+        i = 0;
+        while (i < layers.Count)
+        {
+            int j = 0;
+            while (j < layers.Count)
+            {
+                if (adjacencies[i][j] != "None")
+                {
+                    string[] weight_details = adjacencies[i][j].Split('|');
+                    float weight = float.Parse(weight_details[0]);
+                    float noise = float.Parse(weight_details[1]);
+                    layers[i].add_output_layer(layers[j], weight, noise);
+                    Debug.Log(string.Format("Connecting Layer {0} to layer {1} with weight {2} and noise{3}", i, j, weight, noise));
+                }
+                j++;
+            }
+            i++;
+        }
     }
 
-    public void run(float[] inputs, float[] desired_outputs)
+    public float[] run(float[] inputs, float[] desired_outputs)
     {
         float[] predicted = prop_forward(inputs);
         prop_backward(desired_outputs);
         correct_weights();
+        correct_bias();
+        return predicted;
     }
 
     public float[] prop_forward(float[] inputs)
@@ -52,6 +90,16 @@ public class NeuralNet
         while (i < layers.Count)
         {
             layers[i].correct_weights_ahead();
+            i++;
+        }
+    }
+
+    public void correct_bias()
+    {
+        int i = 0;
+        while (i < layers.Count)
+        {
+            layers[i].correct_bias();
             i++;
         }
     }
