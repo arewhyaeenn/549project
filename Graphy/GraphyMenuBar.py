@@ -51,8 +51,8 @@ class GraphyMenuBar:
         # View Menu
         self.viewmenu = Menu(self.menubar)
         self.viewmenu.add_command(label="Display Preferences", command=self.do_nothing)  # TODO
-        self.viewmenu.add_command(label="Zoom In", command=self.do_nothing)  # TODO
-        self.viewmenu.add_command(label="Zoom Out", command=self.do_nothing)  # TODO
+        self.viewmenu.add_command(label="Zoom In", command=self.zoom_in)
+        self.viewmenu.add_command(label="Zoom Out", command=self.zoom_out) 
         self.menubar.add_cascade(label="View", menu=self.viewmenu)
 
     def do_nothing(self):
@@ -116,6 +116,12 @@ class GraphyMenuBar:
                 self.open_net(path)
             else:
                 messagebox.showerror(title="Invalid File", message="Cannot open file \"" + path + "\"")
+
+    def zoom_in(self):
+        self.parent.can.scale("all", self.parent.can.winfo_width()/2, self.parent.can.winfo_height()/2-100, 1.2, 1.2)
+
+    def zoom_out(self):
+        self.parent.can.scale("all", self.parent.can.winfo_width()/2, self.parent.can.winfo_height()/2-100, 0.8, 0.8)
 
     def open_graph(self, path):
         file = open(path, 'r')
