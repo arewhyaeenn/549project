@@ -52,7 +52,7 @@ class GraphyMenuBar:
         self.viewmenu = Menu(self.menubar)
         self.viewmenu.add_command(label="Display Preferences", command=self.do_nothing)  # TODO
         self.viewmenu.add_command(label="Zoom In", command=self.zoom_in)
-        self.viewmenu.add_command(label="Zoom Out", command=self.zoom_out) 
+        self.viewmenu.add_command(label="Zoom Out", command=self.zoom_out)
         self.menubar.add_cascade(label="View", menu=self.viewmenu)
 
     def do_nothing(self):
