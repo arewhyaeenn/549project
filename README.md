@@ -1,5 +1,6 @@
 # Graphy
-Visualisation of graph creation and search
+Visualize graph creation and search
+Visually build neural nets, export, and use in C#
 
 Run Graphy.py to start.
 
@@ -18,4 +19,4 @@ Run Graphy.py to start.
 > 2) reposition as desired, left click to place
 
 ### To select an edge or vertex:
-> middle click desired object
+> middle click desired object (or CTRL click it)
