@@ -119,6 +119,7 @@ class GraphyMenuBar:
 
     def zoom_in(self):
         self.parent.can.scale("all", self.parent.can.winfo_width()/2, self.parent.can.winfo_height()/2-100, 1.2, 1.2)
+        self.parent.vertex_spawn.resize()
 
     def zoom_out(self):
         self.parent.can.scale("all", self.parent.can.winfo_width()/2, self.parent.can.winfo_height()/2-100, 0.8, 0.8)

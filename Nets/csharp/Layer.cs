@@ -238,6 +238,11 @@ public class Layer
         }
     }
 
+    public void inherit_deltas(Layer layer)
+    {
+        this.deltas = layer.deltas;
+    }
+
     public void add_value_at_index(float value, int index)
     {
         inputs[index] += value;

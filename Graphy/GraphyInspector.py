@@ -105,7 +105,7 @@ class GraphyInspector:
         self.bound_entry = Entry(self.bound_frame, width=int(self.width / 2) - self.padding, textvariable=self.bound_var)
         self.bound_entry.pack(side='right', padx=self.padding, pady=self.padding)
         self.bound_entry.bind('<Button-1>', self.select_bound_text)
-        self.bias_entry.bind('<Return>', self.drop_widget_focus)
+        self.bound_entry.bind('<Return>', self.drop_widget_focus)
 
         # noise
         self.noise_frame = Frame(master=self.frame, relief='sunken')

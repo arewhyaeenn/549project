@@ -1,0 +1,4 @@
+Input;Identity;-95,208;4;0.0;0.0;10.0;None,0|0.1|4,None,None
+H1;ReLU;12,206;12;0.0;0.0;10.0;None,None,0|0.1|5,None
+H2;Sigmoid;146,200;12;0.0;0.0;10.0;None,None,None,0.0|0.1|6
+Output;Identity;289,204;4;0.0;0.0;10.0;None,None,None,None
