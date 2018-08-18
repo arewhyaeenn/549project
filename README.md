@@ -4,7 +4,13 @@ Visually build neural nets, export, and use in C#
 
 Run Graphy.py to start.
 
-## Controls:
+## Modes:
+> Graphy is in graph mode by default; if you'd like to build a neural net, click "File-->New-->Neural Net"
+> Created graphs and nets can be saved (File-->Save/Save As)
+> Saved graphs can be opened (File-->Open)
+> A few other basic functionalities exist... see for yourself!
+
+## Controls (graph mode):
 
 ### To create a vertex:
 > 1) left click vertex creation button (bottom left)
@@ -20,3 +26,9 @@ Run Graphy.py to start.
 
 ### To select an edge or vertex:
 > middle click desired object (or CTRL click it)
+
+## Controls(neural net mode):
+> The controls are nearly identical to graph mode
+> Each vertex is a layer in your neural net
+> Each edge is actually multiple edges, connecting every node in one layer to every node in the other
+> Exported nets can be read and used in C# using the Net class in Nets/csharp
